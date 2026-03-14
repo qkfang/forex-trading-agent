@@ -1,190 +1,473 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FX Status - AUD/USD</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .rate-display {
-            font-size: 4rem;
-            font-weight: bold;
-            color: #0d6efd;
-        }
-        .timestamp {
-            color: #6c757d;
-        }
-        .rate-change {
-            font-size: 1.5rem;
-            margin-left: 10px;
-        }
-        .rate-up {
-            color: #198754;
-        }
-        .rate-down {
-            color: #dc3545;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FX Broker Backoffice — AUD/USD</title>
+  <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+  <style>
+    /* ── Reset & base ──────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:       #0d0e12;
+      --surface:  #16181f;
+      --border:   #252830;
+      --muted:    #5a5f72;
+      --text:     #d4d8e8;
+      --bright:   #ffffff;
+      --accent:   #3b8cf8;
+      --green:    #26a65b;
+      --red:      #e74c3c;
+      --orange:   #f39c12;
+      --yellow:   #f1c40f;
+    }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 13px; }
+
+    /* ── Layout ────────────────────────────────────────────────────────── */
+    .terminal { display: grid; grid-template-rows: 48px 1fr; height: 100vh; }
+    .header { display: flex; align-items: center; gap: 16px; padding: 0 16px; background: var(--surface); border-bottom: 1px solid var(--border); }
+    .header .logo { font-size: 15px; font-weight: 700; color: var(--bright); letter-spacing: 1px; }
+    .header .logo span { color: var(--accent); }
+    .header .session-badge { background: #1a2a1a; color: var(--green); border: 1px solid #2a4a2a; padding: 2px 10px; border-radius: 20px; font-size: 11px; }
+    .header .spacer { flex: 1; }
+    .header .clock { font-family: monospace; font-size: 13px; color: var(--muted); }
+
+    .main { display: grid; grid-template-columns: 320px 1fr 280px; gap: 0; overflow: hidden; }
+
+    /* ── Left panel ────────────────────────────────────────────────────── */
+    .left-panel { display: flex; flex-direction: column; gap: 0; border-right: 1px solid var(--border); overflow-y: auto; }
+
+    /* ── Quote card ────────────────────────────────────────────────────── */
+    .quote-card { padding: 16px; border-bottom: 1px solid var(--border); }
+    .quote-card .pair { font-size: 12px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+    .quote-row { display: flex; align-items: flex-end; gap: 8px; margin: 6px 0; }
+    .quote-bid, .quote-ask { flex: 1; }
+    .quote-bid .label, .quote-ask .label { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+    .quote-bid .price { font-size: 28px; font-weight: 700; font-family: monospace; color: var(--red); }
+    .quote-ask .price { font-size: 28px; font-weight: 700; font-family: monospace; color: var(--green); }
+    .quote-spread { text-align: center; }
+    .quote-spread .label { font-size: 10px; color: var(--muted); }
+    .quote-spread .value { font-size: 16px; font-weight: 600; color: var(--orange); }
+    .quote-meta { display: flex; gap: 12px; font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .quote-change { font-size: 13px; font-weight: 600; }
+    .up { color: var(--green); } .down { color: var(--red); } .flat { color: var(--muted); }
+
+    /* ── Market status ─────────────────────────────────────────────────── */
+    .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border-bottom: 1px solid var(--border); }
+    .stat-cell { padding: 10px 12px; background: var(--surface); }
+    .stat-cell .label { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+    .stat-cell .value { font-size: 14px; font-weight: 600; color: var(--bright); margin-top: 2px; }
+
+    /* ── Trend simulation ──────────────────────────────────────────────── */
+    .sim-panel { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    .sim-panel h4 { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .sim-buttons { display: flex; gap: 8px; }
+    .btn-sim { flex: 1; padding: 10px 4px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+    .btn-sim:hover { opacity: .85; }
+    .btn-bull { background: #1a3a1a; color: var(--green); border: 1px solid var(--green); }
+    .btn-bear { background: #3a1a1a; color: var(--red);   border: 1px solid var(--red);   }
+    .btn-flat { background: #2a2a1a; color: var(--orange); border: 1px solid var(--orange); }
+    .strength-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+    .strength-row label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+    .strength-row input[type=range] { flex: 1; accent-color: var(--accent); }
+    .strength-row .val { font-size: 12px; font-weight: 600; color: var(--bright); width: 28px; text-align: right; }
+    .trend-indicator { margin-top: 8px; text-align: center; font-size: 12px; font-weight: 600; padding: 4px; border-radius: 4px; }
+
+    /* ── Trade execution ───────────────────────────────────────────────── */
+    .trade-panel { padding: 14px 16px; }
+    .trade-panel h4 { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .trade-input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--bright); border-radius: 6px; padding: 8px 10px; font-size: 14px; margin-bottom: 10px; }
+    .trade-input:focus { outline: none; border-color: var(--accent); }
+    .trade-btns { display: flex; gap: 8px; }
+    .btn-buy, .btn-sell { flex: 1; padding: 12px; border: none; border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; letter-spacing: .5px; transition: opacity .15s; }
+    .btn-buy:hover, .btn-sell:hover { opacity: .85; }
+    .btn-buy  { background: var(--green); color: #fff; }
+    .btn-sell { background: var(--red);   color: #fff; }
+    .trade-feedback { margin-top: 8px; font-size: 12px; padding: 6px 10px; border-radius: 4px; display: none; }
+    .trade-feedback.ok  { background: #1a3a1a; color: var(--green); border: 1px solid var(--green); display: block; }
+    .trade-feedback.err { background: #3a1a1a; color: var(--red);   border: 1px solid var(--red);   display: block; }
+
+    /* ── Center: chart ─────────────────────────────────────────────────── */
+    .chart-panel { display: flex; flex-direction: column; overflow: hidden; }
+    .chart-toolbar { display: flex; align-items: center; gap: 16px; padding: 8px 16px; border-bottom: 1px solid var(--border); background: var(--surface); }
+    .chart-toolbar .title { font-size: 13px; font-weight: 600; color: var(--bright); }
+    .toolbar-spacer { flex: 1; }
+    .interval-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 3px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    .interval-btn.active { border-color: var(--accent); color: var(--accent); }
+    #chartContainer { flex: 1; }
+
+    /* ── Right panel: order book + blotter ─────────────────────────────── */
+    .right-panel { display: flex; flex-direction: column; border-left: 1px solid var(--border); overflow: hidden; }
+    .panel-section { display: flex; flex-direction: column; overflow: hidden; }
+    .panel-section.grow { flex: 1; min-height: 0; }
+    .section-header { padding: 8px 12px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); flex-shrink: 0; }
+    .ob-table { width: 100%; border-collapse: collapse; font-family: monospace; font-size: 12px; }
+    .ob-table th { padding: 4px 8px; color: var(--muted); font-size: 10px; text-transform: uppercase; background: var(--bg); border-bottom: 1px solid var(--border); text-align: right; }
+    .ob-table th:first-child { text-align: left; }
+    .ob-table td { padding: 3px 8px; text-align: right; border-bottom: 1px solid #1a1c22; }
+    .ob-table td:first-child { text-align: left; }
+    .ask-row td:first-child { color: var(--green); }
+    .bid-row td:first-child { color: var(--red); }
+    .ob-scroll { overflow-y: auto; flex: 1; }
+    .ob-spread-row { background: #1a1c22; }
+    .ob-spread-row td { color: var(--orange); font-weight: 600; text-align: center !important; padding: 4px; }
+
+    /* ── Blotter ───────────────────────────────────────────────────────── */
+    .blotter-scroll { overflow-y: auto; flex: 1; }
+    .blotter-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .blotter-table th { padding: 4px 8px; color: var(--muted); font-size: 10px; text-transform: uppercase; background: var(--bg); border-bottom: 1px solid var(--border); text-align: right; position: sticky; top: 0; z-index: 1; }
+    .blotter-table th:first-child { text-align: left; }
+    .blotter-table td { padding: 4px 8px; border-bottom: 1px solid #1a1c22; text-align: right; font-family: monospace; }
+    .blotter-table td:first-child { text-align: left; }
+    .badge-buy  { background: #1a3a1a; color: var(--green); border-radius: 3px; padding: 1px 5px; font-size: 10px; font-weight: 700; }
+    .badge-sell { background: #3a1a1a; color: var(--red);   border-radius: 3px; padding: 1px 5px; font-size: 10px; font-weight: 700; }
+  </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="text-center mb-5">FX Rate Monitor - AUD/USD</h1>
-        
-        <div class="card shadow">
-            <div class="card-body text-center p-5">
-                <h2 class="mb-4">Current Rate</h2>
-                <div class="rate-display" id="currentRate">0.0000</div>
-                <div class="rate-change" id="rateChange"></div>
-                <div class="timestamp mt-3" id="timestamp">Loading...</div>
-                
-                <div class="mt-5">
-                    <button class="btn btn-success btn-lg me-3" onclick="executeTrade('buy')">
-                        Buy AUD
-                    </button>
-                    <button class="btn btn-danger btn-lg" onclick="executeTrade('sell')">
-                        Sell AUD
-                    </button>
-                </div>
-                
-                <div class="mt-4" id="tradeResult"></div>
-            </div>
-        </div>
+<div class="terminal">
 
-        <div class="card shadow mt-4">
-            <div class="card-body">
-                <h3>Rate History (Last 10 updates)</h3>
-                <canvas id="rateChart" height="100"></canvas>
-            </div>
+  <!-- ── Header ─────────────────────────────────────────────────────── -->
+  <header class="header">
+    <div class="logo">FX <span>BROKER</span> BACKOFFICE</div>
+    <div class="session-badge" id="sessionBadge">⬤ Sydney / Tokyo</div>
+    <div class="spacer"></div>
+    <div class="clock" id="utcClock">UTC 00:00:00</div>
+  </header>
+
+  <!-- ── Main layout ────────────────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- ── LEFT PANEL ─────────────────────────────────────────────── -->
+    <aside class="left-panel">
+
+      <!-- Quote -->
+      <div class="quote-card">
+        <div class="pair">AUD / USD &nbsp;•&nbsp; FX SPOT</div>
+        <div class="quote-row">
+          <div class="quote-bid">
+            <div class="label">BID (Sell)</div>
+            <div class="price" id="bidPrice">0.0000</div>
+          </div>
+          <div class="quote-spread">
+            <div class="label">SPREAD</div>
+            <div class="value" id="spreadPips">–</div>
+          </div>
+          <div class="quote-ask">
+            <div class="label">ASK (Buy)</div>
+            <div class="price" id="askPrice">0.0000</div>
+          </div>
         </div>
+        <div class="quote-meta">
+          <span>MID <strong id="midPrice">–</strong></span>
+          <span class="quote-change" id="dayChange">–</span>
+          <span id="lastUpdated" style="margin-left:auto">–</span>
+        </div>
+      </div>
+
+      <!-- Day stats -->
+      <div class="status-grid">
+        <div class="stat-cell"><div class="label">Day Open</div><div class="value" id="dayOpen">–</div></div>
+        <div class="stat-cell"><div class="label">Day High</div><div class="value up" id="dayHigh">–</div></div>
+        <div class="stat-cell"><div class="label">Day Low</div><div class="value down" id="dayLow">–</div></div>
+        <div class="stat-cell"><div class="label">Volatility</div><div class="value" id="volatility">–</div></div>
+      </div>
+
+      <!-- Trend simulation -->
+      <div class="sim-panel">
+        <h4>🎮 Price Simulation</h4>
+        <div class="sim-buttons">
+          <button class="btn-sim btn-bull" onclick="setTrend('up')">▲ Bull Run</button>
+          <button class="btn-sim btn-flat" onclick="setTrend('neutral')">─ Consolidate</button>
+          <button class="btn-sim btn-bear" onclick="setTrend('down')">▼ Bear Drop</button>
+        </div>
+        <div class="strength-row">
+          <label>Strength</label>
+          <input type="range" id="trendStrength" min="20" max="100" value="70">
+          <span class="val" id="strengthVal">70</span>
+        </div>
+        <div class="trend-indicator flat" id="trendIndicator">● Neutral — No trend bias</div>
+      </div>
+
+      <!-- Trade execution -->
+      <div class="trade-panel">
+        <h4>⚡ Execute Trade (MCP / API)</h4>
+        <input class="trade-input" type="number" id="tradeAmount" value="100000" placeholder="Amount (AUD)" min="1">
+        <div class="trade-btns">
+          <button class="btn-buy"  onclick="executeTrade('buy')">BUY AUD</button>
+          <button class="btn-sell" onclick="executeTrade('sell')">SELL AUD</button>
+        </div>
+        <div class="trade-feedback" id="tradeFeedback"></div>
+      </div>
+    </aside>
+
+    <!-- ── CENTER: CHART ───────────────────────────────────────────── -->
+    <div class="chart-panel">
+      <div class="chart-toolbar">
+        <span class="title">AUD/USD — Candlestick</span>
+        <span class="toolbar-spacer"></span>
+        <span style="font-size:11px;color:var(--muted)">30s candles · live</span>
+      </div>
+      <div id="chartContainer"></div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script>
-        let previousRate = null;
-        let rateHistory = [];
-        let timeLabels = [];
-        let chart = null;
+    <!-- ── RIGHT PANEL: ORDER BOOK + BLOTTER ──────────────────────── -->
+    <div class="right-panel">
 
-        // Initialize chart
-        const ctx = document.getElementById('rateChart').getContext('2d');
-        chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: timeLabels,
-                datasets: [{
-                    label: 'AUD/USD Rate',
-                    data: rateHistory,
-                    borderColor: 'rgb(13, 110, 253)',
-                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        min: 0.60,
-                        max: 0.70
-                    }
-                }
-            }
-        });
+      <!-- Order book -->
+      <div class="panel-section" style="height:55%">
+        <div class="section-header">Order Book — Market Depth</div>
+        <div class="ob-scroll">
+          <table class="ob-table">
+            <thead><tr><th>Price</th><th>Size</th><th>Total</th></tr></thead>
+            <tbody id="obAsks"></tbody>
+            <tbody><tr class="ob-spread-row"><td colspan="3" id="obSpread">Spread: –</td></tr></tbody>
+            <tbody id="obBids"></tbody>
+          </table>
+        </div>
+      </div>
 
-        async function updateRate() {
-            try {
-                const response = await fetch('/api/fx/rate');
-                const data = await response.json();
-                
-                const currentRate = parseFloat(data.rate);
-                document.getElementById('currentRate').textContent = currentRate.toFixed(4);
-                document.getElementById('timestamp').textContent = 
-                    'Last updated: ' + new Date(data.timestamp).toLocaleString();
-                
-                // Show rate change
-                if (previousRate !== null) {
-                    const change = currentRate - previousRate;
-                    const changeElement = document.getElementById('rateChange');
-                    if (change > 0) {
-                        changeElement.innerHTML = '▲ ' + Math.abs(change).toFixed(4);
-                        changeElement.className = 'rate-change rate-up';
-                    } else if (change < 0) {
-                        changeElement.innerHTML = '▼ ' + Math.abs(change).toFixed(4);
-                        changeElement.className = 'rate-change rate-down';
-                    } else {
-                        changeElement.innerHTML = '─ 0.0000';
-                        changeElement.className = 'rate-change';
-                    }
-                }
-                
-                previousRate = currentRate;
+      <!-- Trade blotter -->
+      <div class="panel-section grow">
+        <div class="section-header">Trade Blotter</div>
+        <div class="blotter-scroll">
+          <table class="blotter-table">
+            <thead><tr><th>Type</th><th>Amount</th><th>Rate</th><th>Total</th><th>Time</th></tr></thead>
+            <tbody id="blotterBody"></tbody>
+          </table>
+        </div>
+      </div>
 
-                // Update chart
-                const now = new Date().toLocaleTimeString();
-                rateHistory.push(currentRate);
-                timeLabels.push(now);
-                
-                if (rateHistory.length > 10) {
-                    rateHistory.shift();
-                    timeLabels.shift();
-                }
-                
-                chart.update();
-                
-            } catch (error) {
-                console.error('Error fetching rate:', error);
-                document.getElementById('timestamp').textContent = 'Error loading rate';
-            }
-        }
+    </div>
+  </div><!-- end .main -->
+</div><!-- end .terminal -->
 
-        async function executeTrade(type) {
-            const amount = prompt(`Enter amount to ${type} (AUD):`, '1000');
-            if (!amount) return;
+<script>
+  // ── Chart setup ──────────────────────────────────────────────────────────
+  const chartContainer = document.getElementById('chartContainer');
+  const chart = LightweightCharts.createChart(chartContainer, {
+    width: chartContainer.clientWidth,
+    height: chartContainer.clientHeight,
+    layout: { background: { color: '#0d0e12' }, textColor: '#d4d8e8' },
+    grid: { vertLines: { color: '#1e2028' }, horzLines: { color: '#1e2028' } },
+    crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+    rightPriceScale: { borderColor: '#252830' },
+    timeScale: { borderColor: '#252830', timeVisible: true, secondsVisible: false },
+  });
 
-            try {
-                const response = await fetch(`/api/fx/${type}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        currencyPair: 'AUD/USD',
-                        amount: parseFloat(amount),
-                        rate: 0
-                    })
-                });
+  const candleSeries = chart.addCandlestickSeries({
+    upColor: '#26a65b', downColor: '#e74c3c',
+    borderUpColor: '#26a65b', borderDownColor: '#e74c3c',
+    wickUpColor: '#26a65b', wickDownColor: '#e74c3c',
+  });
 
-                const result = await response.json();
-                const resultDiv = document.getElementById('tradeResult');
-                
-                if (result.success) {
-                    resultDiv.innerHTML = `
-                        <div class="alert alert-success">
-                            <strong>Success!</strong> ${result.message}<br>
-                            Amount: ${result.transaction.amount} ${result.transaction.currencyPair}<br>
-                            Rate: ${result.transaction.rate.toFixed(4)}
-                        </div>
-                    `;
-                } else {
-                    resultDiv.innerHTML = `
-                        <div class="alert alert-danger">
-                            <strong>Error!</strong> ${result.message}
-                        </div>
-                    `;
-                }
+  const volumeSeries = chart.addHistogramSeries({
+    priceFormat: { type: 'volume' },
+    priceScaleId: 'vol',
+    color: '#26a65b44',
+  });
+  chart.priceScale('vol').applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } });
 
-                setTimeout(() => {
-                    resultDiv.innerHTML = '';
-                }, 5000);
+  new ResizeObserver(() => {
+    chart.applyOptions({ width: chartContainer.clientWidth, height: chartContainer.clientHeight });
+  }).observe(chartContainer);
 
-            } catch (error) {
-                console.error('Error executing trade:', error);
-            }
-        }
+  // ── State ─────────────────────────────────────────────────────────────────
+  let prevBid = null;
+  let candleData = [];
 
-        // Update rate every 2 seconds
-        updateRate();
-        setInterval(updateRate, 2000);
-    </script>
+  // ── Clock ─────────────────────────────────────────────────────────────────
+  function tick() {
+    const now = new Date();
+    document.getElementById('utcClock').textContent =
+      'UTC ' + now.getUTCHours().toString().padStart(2,'0') + ':' +
+               now.getUTCMinutes().toString().padStart(2,'0') + ':' +
+               now.getUTCSeconds().toString().padStart(2,'0');
+  }
+  setInterval(tick, 1000); tick();
+
+  // ── Trend strength slider ─────────────────────────────────────────────────
+  document.getElementById('trendStrength').addEventListener('input', e => {
+    document.getElementById('strengthVal').textContent = e.target.value;
+  });
+
+  // ── Fetch helpers ─────────────────────────────────────────────────────────
+  async function get(url) {
+    const r = await fetch(url); if (!r.ok) throw new Error(r.status); return r.json();
+  }
+  async function post(url, body) {
+    const r = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    return r.json();
+  }
+
+  // ── Update quote display ──────────────────────────────────────────────────
+  async function updateQuote() {
+    try {
+      const q = await get('/api/fx/quote');
+      const bid = q.bid.toFixed(4), ask = q.ask.toFixed(4), mid = q.mid.toFixed(4);
+      document.getElementById('bidPrice').textContent = bid;
+      document.getElementById('askPrice').textContent = ask;
+      document.getElementById('midPrice').textContent = mid;
+      document.getElementById('spreadPips').textContent = q.spreadPips + ' pip' + (q.spreadPips !== 1 ? 's' : '');
+      document.getElementById('lastUpdated').textContent = new Date(q.timestamp).toLocaleTimeString();
+
+      // Flash colour
+      if (prevBid !== null) {
+        const bidEl = document.getElementById('bidPrice');
+        bidEl.style.transition = 'none';
+        bidEl.style.textShadow = q.bid > prevBid ? '0 0 10px #26a65b' : '0 0 10px #e74c3c';
+        setTimeout(() => bidEl.style.textShadow = '', 600);
+      }
+      prevBid = q.bid;
+    } catch {}
+  }
+
+  // ── Update market status ──────────────────────────────────────────────────
+  async function updateStatus() {
+    try {
+      const s = await get('/api/fx/status');
+      document.getElementById('dayOpen').textContent   = s.dayOpen.toFixed(4);
+      document.getElementById('dayHigh').textContent   = s.dayHigh.toFixed(4);
+      document.getElementById('dayLow').textContent    = s.dayLow.toFixed(4);
+      document.getElementById('volatility').textContent = s.volatility.toFixed(1) + ' pip';
+      document.getElementById('sessionBadge').textContent = '⬤ ' + s.session;
+
+      const chg = s.dayChange.toFixed(4);
+      const pct = s.dayChangePct.toFixed(2);
+      const el = document.getElementById('dayChange');
+      el.textContent = (s.dayChange >= 0 ? '▲ +' : '▼ ') + chg + '  (' + pct + '%)';
+      el.className = 'quote-change ' + (s.dayChange > 0 ? 'up' : s.dayChange < 0 ? 'down' : 'flat');
+    } catch {}
+  }
+
+  // ── Update candle chart ───────────────────────────────────────────────────
+  async function updateChart() {
+    try {
+      const candles = await get('/api/fx/history?bars=200');
+      candleData = candles.map(c => ({
+        time: Math.floor(new Date(c.timestamp).getTime() / 1000),
+        open: c.open, high: c.high, low: c.low, close: c.close
+      }));
+      const volData = candles.map(c => ({
+        time: Math.floor(new Date(c.timestamp).getTime() / 1000),
+        value: c.volume,
+        color: c.close >= c.open ? '#26a65b44' : '#e74c3c44'
+      }));
+      candleSeries.setData(candleData);
+      volumeSeries.setData(volData);
+      chart.timeScale().fitContent();
+    } catch {}
+  }
+
+  // ── Append latest candle ──────────────────────────────────────────────────
+  async function appendCandle() {
+    try {
+      const candles = await get('/api/fx/history?bars=3');
+      candles.forEach(c => {
+        candleSeries.update({ time: Math.floor(new Date(c.timestamp).getTime() / 1000), open: c.open, high: c.high, low: c.low, close: c.close });
+        volumeSeries.update({ time: Math.floor(new Date(c.timestamp).getTime() / 1000), value: c.volume, color: c.close >= c.open ? '#26a65b44' : '#e74c3c44' });
+      });
+    } catch {}
+  }
+
+  // ── Order book ────────────────────────────────────────────────────────────
+  async function updateOrderBook() {
+    try {
+      const ob = await get('/api/fx/orderbook');
+      const fmtSz = v => (v/1000000).toFixed(2) + 'M';
+      let html = '';
+      [...ob.asks].reverse().forEach(a => {
+        html += `<tr class="ask-row"><td>${a.price.toFixed(4)}</td><td>${fmtSz(a.size)}</td><td>${fmtSz(a.total)}</td></tr>`;
+      });
+      document.getElementById('obAsks').innerHTML = html;
+
+      html = '';
+      ob.bids.forEach(b => {
+        html += `<tr class="bid-row"><td>${b.price.toFixed(4)}</td><td>${fmtSz(b.size)}</td><td>${fmtSz(b.total)}</td></tr>`;
+      });
+      document.getElementById('obBids').innerHTML = html;
+
+      const spread = ob.asks.length && ob.bids.length
+        ? ((ob.asks[0].price - ob.bids[0].price) * 10000).toFixed(1)
+        : '–';
+      document.getElementById('obSpread').textContent = `Spread: ${spread} pips`;
+    } catch {}
+  }
+
+  // ── Trade blotter ─────────────────────────────────────────────────────────
+  async function updateBlotter() {
+    try {
+      const txns = await get('/api/fx/transactions?limit=30');
+      let html = '';
+      txns.forEach(t => {
+        const badge = t.type === 'Buy'
+          ? '<span class="badge-buy">BUY</span>'
+          : '<span class="badge-sell">SELL</span>';
+        const time = new Date(t.timestamp).toLocaleTimeString();
+        html += `<tr>
+          <td>${badge}</td>
+          <td>${(t.amount/1000).toFixed(0)}K</td>
+          <td>${t.rate.toFixed(4)}</td>
+          <td>${t.total.toLocaleString('en-US', {style:'currency', currency:'USD', maximumFractionDigits:0})}</td>
+          <td>${time}</td>
+        </tr>`;
+      });
+      document.getElementById('blotterBody').innerHTML = html || '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:12px">No trades yet</td></tr>';
+    } catch {}
+  }
+
+  // ── Trend control ─────────────────────────────────────────────────────────
+  async function setTrend(direction) {
+    const strength = parseInt(document.getElementById('trendStrength').value);
+    try {
+      await post('/api/fx/trend', { direction, strength });
+      const indicator = document.getElementById('trendIndicator');
+      const labels = { up: ['up','● Bull Run Active — Upward pressure', 'up'], down: ['down','● Bear Drop Active — Downward pressure', 'down'], neutral: ['flat','● Neutral — No trend bias', 'flat'] };
+      const [cls, text] = labels[direction] || labels.neutral;
+      indicator.className = 'trend-indicator ' + cls;
+      indicator.textContent = text;
+
+      // Auto-reset indicator after 30s
+      setTimeout(() => {
+        indicator.className = 'trend-indicator flat';
+        indicator.textContent = '● Neutral — No trend bias';
+      }, 30000);
+    } catch(e) { console.error('Trend error', e); }
+  }
+
+  // ── Trade execution ───────────────────────────────────────────────────────
+  async function executeTrade(type) {
+    const amount = parseFloat(document.getElementById('tradeAmount').value);
+    if (!amount || amount <= 0) return;
+    const fb = document.getElementById('tradeFeedback');
+    try {
+      const res = await post(`/api/fx/${type}`, { currencyPair:'AUD/USD', amount, rate:0 });
+      if (res.success) {
+        fb.className = 'trade-feedback ok';
+        fb.textContent = `✓ ${res.message}`;
+        updateBlotter();
+      } else {
+        fb.className = 'trade-feedback err';
+        fb.textContent = `✗ ${res.message}`;
+      }
+    } catch {
+      fb.className = 'trade-feedback err';
+      fb.textContent = '✗ Connection error';
+    }
+    setTimeout(() => { fb.className = 'trade-feedback'; }, 5000);
+  }
+
+  // ── Polling schedule ──────────────────────────────────────────────────────
+  (async () => {
+    await updateChart();
+    await Promise.all([updateQuote(), updateStatus(), updateOrderBook(), updateBlotter()]);
+
+    setInterval(updateQuote,    1000);
+    setInterval(appendCandle,   2000);
+    setInterval(updateOrderBook,2000);
+    setInterval(updateStatus,   3000);
+    setInterval(updateBlotter,  5000);
+  })();
+</script>
 </body>
 </html>
+
