@@ -1,42 +1,141 @@
 @page
 @model IndexModel
 @{
-    ViewData["Title"] = "FX News";
+    ViewData["Title"] = "FX Market News";
+    var lead = Model.News.FirstOrDefault();
+    var rest = Model.News.Skip(1).ToList();
 }
 
-<div class="container mt-4">
-    <h1 class="mb-4">FX Market News</h1>
+<!-- Breaking news ticker -->
+@if (Model.News.Any())
+{
+    <div class="fxn-ticker">
+        <span class="fxn-ticker-label">LIVE</span>
+        <div class="fxn-ticker-track">
+            <span class="fxn-ticker-items">
+                @foreach (var a in Model.News)
+                {
+                    <span class="fxn-ticker-item">
+                        <span class="@(a.Type == "Good" ? "fxn-tick-bull" : "fxn-tick-bear")">@(a.Type == "Good" ? "▲" : "▼")</span>
+                        @a.Title &nbsp;&nbsp;&nbsp;
+                    </span>
+                }
+            </span>
+        </div>
+    </div>
+}
 
-    <div class="mb-3">
-        <a href="/Admin" class="btn btn-primary">Admin Panel</a>
+<div class="container-fluid px-4 py-4">
+
+    <!-- Section title + filters -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h2 class="fxn-section-title mb-0">Market Intelligence</h2>
+        <div class="d-flex gap-2">
+            <span class="fxn-ts" id="fxn-clock"></span>
+            <a href="/Admin" class="btn btn-sm fxn-btn-newsroom">Newsroom →</a>
+        </div>
     </div>
 
-    @if (Model.News != null && Model.News.Any())
+    @if (!Model.News.Any())
     {
-        foreach (var article in Model.News)
+        <div class="fxn-empty-state text-center py-5">
+            <div class="fxn-empty-icon mb-3">📡</div>
+            <h4 class="text-muted">No articles published yet</h4>
+            <p class="text-muted">Head to the <a href="/Admin">Newsroom</a> to publish your first article.</p>
+        </div>
+    }
+    else
+    {
+        <!-- Lead story -->
+        @if (lead != null)
         {
-            <div class="card mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="mb-0">@article.Title</h3>
-                    <span class="badge @(article.Type == "Good" ? "bg-success" : "bg-danger")">
-                        @article.Type News
-                    </span>
-                </div>
-                <div class="card-body">
-                    <p class="card-text">@article.Content</p>
-                    <div class="text-muted">
-                        <small>
-                            By @article.Author | Published: @article.PublishedDate.ToString("MMMM dd, yyyy HH:mm")
-                        </small>
+            <div class="fxn-lead-story mb-5">
+                <div class="row g-0">
+                    <div class="col-lg-8 p-4 p-lg-5">
+                        <div class="d-flex gap-2 mb-3">
+                            <span class="fxn-category-badge">@lead.Category</span>
+                            <span class="badge @(lead.Type == "Good" ? "fxn-badge-bull" : "fxn-badge-bear")">
+                                @(lead.Type == "Good" ? "▲ BULLISH" : "▼ BEARISH")
+                            </span>
+                        </div>
+                        <h2 class="fxn-lead-title">@lead.Title</h2>
+                        @if (!string.IsNullOrWhiteSpace(lead.Summary))
+                        {
+                            <p class="fxn-lead-summary">@lead.Summary</p>
+                        }
+                        <p class="fxn-lead-body">@lead.Content</p>
+                        <div class="fxn-article-meta mt-3">
+                            <span>By <strong>@lead.Author</strong></span>
+                            <span class="mx-2">|</span>
+                            <span>@(lead.PublishedAt?.ToString("dd MMM yyyy, HH:mm") ?? lead.PublishedDate.ToString("dd MMM yyyy, HH:mm")) UTC</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 fxn-lead-sidebar p-4">
+                        <div class="fxn-lead-stat-title mb-3">Sentiment Indicator</div>
+                        <div class="fxn-sentiment-meter @(lead.Type == "Good" ? "bull" : "bear")">
+                            <div class="fxn-sentiment-label">@(lead.Type == "Good" ? "BULLISH" : "BEARISH")</div>
+                            <div class="fxn-sentiment-bar">
+                                <div class="fxn-sentiment-fill" style="width: @(lead.Type == "Good" ? "72" : "35")%"></div>
+                            </div>
+                            <div class="d-flex justify-content-between fxn-sentiment-ends">
+                                <small>Bear</small><small>Bull</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         }
-    }
-    else
-    {
-        <div class="alert alert-info">
-            <p>No news articles available at the moment.</p>
-        </div>
+
+        <!-- Article grid -->
+        @if (rest.Any())
+        {
+            <h5 class="fxn-grid-section-title mb-3">Latest Stories</h5>
+            <div class="row g-4">
+                @foreach (var a in rest)
+                {
+                    <div class="col-md-6 col-xl-4">
+                        <div class="fxn-article-card h-100">
+                            <div class="fxn-article-card-top">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="fxn-category-badge">@a.Category</span>
+                                    <span class="badge @(a.Type == "Good" ? "fxn-badge-bull" : "fxn-badge-bear")">
+                                        @(a.Type == "Good" ? "▲" : "▼")
+                                    </span>
+                                </div>
+                                <h5 class="fxn-card-title">@a.Title</h5>
+                                @if (!string.IsNullOrWhiteSpace(a.Summary))
+                                {
+                                    <p class="fxn-card-summary">@a.Summary</p>
+                                }
+                                else
+                                {
+                                    <p class="fxn-card-summary">@(a.Content.Length > 120 ? a.Content[..120] + "…" : a.Content)</p>
+                                }
+                            </div>
+                            <div class="fxn-article-card-footer">
+                                <span class="fxn-card-author">@a.Author</span>
+                                <span class="fxn-card-date">@(a.PublishedAt?.ToString("dd MMM, HH:mm") ?? a.PublishedDate.ToString("dd MMM, HH:mm"))</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
     }
 </div>
+
+@section Scripts {
+<script>
+    (function () {
+        function tick() {
+            var el = document.getElementById('fxn-clock');
+            if (el) {
+                var now = new Date();
+                el.textContent = now.toUTCString().replace(' GMT', ' UTC');
+            }
+        }
+        tick();
+        setInterval(tick, 1000);
+    })();
+</script>
+}

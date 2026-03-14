@@ -3,42 +3,54 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - FxWebNews</title>
+    <title>@ViewData["Title"] - FX News Centre</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/FxWebNews.styles.css" asp-append-version="true" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">FxWebNews</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
-                        </li>
-                    </ul>
+        <!-- Top bar: brand + market data strip -->
+        <div class="fxn-topbar">
+            <div class="container-fluid px-4 d-flex align-items-center justify-content-between">
+                <a class="fxn-brand" asp-area="" asp-page="/Index">
+                    <span class="fxn-brand-fx">FX</span><span class="fxn-brand-news">News Centre</span>
+                </a>
+                <div class="fxn-market-strip d-none d-md-flex gap-4">
+                    <span class="fxn-market-pair"><span class="fxn-pair-label">EUR/USD</span> <span class="fxn-tick-bull">1.0842 ▲</span></span>
+                    <span class="fxn-market-pair"><span class="fxn-pair-label">GBP/USD</span> <span class="fxn-tick-bull">1.2731 ▲</span></span>
+                    <span class="fxn-market-pair"><span class="fxn-pair-label">USD/JPY</span> <span class="fxn-tick-bear">148.23 ▼</span></span>
+                    <span class="fxn-market-pair"><span class="fxn-pair-label">AUD/USD</span> <span class="fxn-tick-bear">0.6512 ▼</span></span>
+                    <span class="fxn-market-pair"><span class="fxn-pair-label">XAU/USD</span> <span class="fxn-tick-bull">2341.50 ▲</span></span>
                 </div>
+                <nav class="fxn-nav d-flex gap-3 align-items-center">
+                    <a class="fxn-nav-link" asp-area="" asp-page="/Index">Markets</a>
+                    <a class="fxn-nav-link" href="/Admin">Newsroom</a>
+                </nav>
             </div>
-        </nav>
+        </div>
+        <!-- Category nav bar -->
+        <div class="fxn-catbar">
+            <div class="container-fluid px-4">
+                <span class="fxn-catbar-item active">All</span>
+                <span class="fxn-catbar-item">FX</span>
+                <span class="fxn-catbar-item">Equities</span>
+                <span class="fxn-catbar-item">Commodities</span>
+                <span class="fxn-catbar-item">Crypto</span>
+                <span class="fxn-catbar-item">Rates</span>
+                <span class="fxn-catbar-item">Macro</span>
+            </div>
+        </div>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - FxWebNews - <a asp-area="" asp-page="/Privacy">Privacy</a>
+    <main role="main" class="pb-4">
+        @RenderBody()
+    </main>
+
+    <footer class="fxn-footer">
+        <div class="container-fluid px-4 d-flex flex-wrap justify-content-between align-items-center">
+            <span>&copy; 2026 FX News Centre — For informational purposes only. Not financial advice.</span>
+            <a class="fxn-footer-link" asp-area="" asp-page="/Privacy">Privacy Policy</a>
         </div>
     </footer>
 

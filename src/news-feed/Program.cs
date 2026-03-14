@@ -5,6 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddSingleton<NewsService>();
+builder.Services.AddHttpClient<NewsPublishService>();
 
 var app = builder.Build();
 

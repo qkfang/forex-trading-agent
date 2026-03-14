@@ -1,0 +1,126 @@
+@page "{id:int}"
+@model FxWebNews.Pages.Admin.PublishModel
+@{
+    ViewData["Title"] = "Review & Publish Article";
+    var article = Model.Article;
+    bool isPublished = article?.IsPublished ?? false;
+}
+
+<div class="container-fluid px-4 py-4">
+
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb fxn-breadcrumb">
+            <li class="breadcrumb-item"><a href="/Admin">Newsroom</a></li>
+            <li class="breadcrumb-item active">Review &amp; Publish</li>
+        </ol>
+    </nav>
+
+    @if (article == null)
+    {
+        <div class="alert alert-danger">Article not found.</div>
+    }
+    else
+    {
+        <div class="row g-4">
+            <!-- Preview column -->
+            <div class="col-lg-8">
+                <div class="fxn-article-preview p-4">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="fxn-category-badge">@article.Category</span>
+                        <span class="badge @(article.Type == "Good" ? "fxn-badge-bull" : "fxn-badge-bear")">
+                            @(article.Type == "Good" ? "▲ BULLISH" : "▼ BEARISH")
+                        </span>
+                        @if (isPublished)
+                        {
+                            <span class="badge fxn-badge-live ms-auto">● LIVE</span>
+                        }
+                        else
+                        {
+                            <span class="badge fxn-badge-draft ms-auto">DRAFT</span>
+                        }
+                    </div>
+
+                    <h1 class="fxn-article-title">@article.Title</h1>
+
+                    @if (!string.IsNullOrWhiteSpace(article.Summary))
+                    {
+                        <p class="fxn-article-summary">@article.Summary</p>
+                    }
+
+                    <div class="fxn-article-meta mb-4">
+                        <span>By <strong>@article.Author</strong></span>
+                        <span class="mx-2">|</span>
+                        <span>Created: @article.PublishedDate.ToString("dd MMM yyyy, HH:mm") UTC</span>
+                        @if (article.PublishedAt.HasValue)
+                        {
+                            <span class="mx-2">|</span>
+                            <span>Published: @article.PublishedAt.Value.ToString("dd MMM yyyy, HH:mm") UTC</span>
+                        }
+                    </div>
+
+                    <hr class="fxn-divider" />
+
+                    <div class="fxn-article-body">
+                        @Html.Raw(Html.Encode(article.Content).Replace("\n", "<br/>"))
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions sidebar -->
+            <div class="col-lg-4">
+                <div class="fxn-sidebar-card p-4 mb-3">
+                    <h5 class="fxn-sidebar-title mb-3">Publication Status</h5>
+
+                    @if (isPublished)
+                    {
+                        <div class="fxn-status-indicator fxn-status-live mb-3">
+                            <span class="fxn-pulse-dot"></span> Live on news feed
+                        </div>
+                        <p class="text-muted small mb-3">
+                            Published @(article.PublishedAt?.ToString("dd MMM yyyy, HH:mm") ?? "—") UTC
+                        </p>
+                        <form method="post" asp-page-handler="Unpublish" asp-route-id="@article.Id">
+                            <button type="submit" class="btn fxn-btn-unpublish w-100"
+                                    onclick="return confirm('Retract this article from the news feed?')">
+                                Retract from Live Feed
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="fxn-status-indicator fxn-status-draft mb-3">
+                            ○ Draft — not visible to readers
+                        </div>
+                        <form method="post" asp-page-handler="Publish" asp-route-id="@article.Id">
+                            <button type="submit" class="btn fxn-btn-publish w-100">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-broadcast me-1" viewBox="0 0 16 16">
+                                    <path d="M3.05 3.05a7 7 0 0 0 0 9.9.5.5 0 0 1-.707.707 8 8 0 0 1 0-11.314.5.5 0 0 1 .707.707m2.122 2.122a4 4 0 0 0 0 5.656.5.5 0 1 1-.708.708 5 5 0 0 1 0-7.072.5.5 0 0 1 .708.708m5.656-.708a.5.5 0 0 1 .708 0 5 5 0 0 1 0 7.072.5.5 0 1 1-.708-.708 4 4 0 0 0 0-5.656.5.5 0 0 1 0-.708m2.122-2.12a.5.5 0 0 1 .707 0 8 8 0 0 1 0 11.313.5.5 0 0 1-.707-.707 7 7 0 0 0 0-9.9.5.5 0 0 1 0-.707zM10 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0"/>
+                                </svg>
+                                Publish &amp; Push to Feed
+                            </button>
+                        </form>
+                    }
+                </div>
+
+                <div class="fxn-sidebar-card p-4 mb-3">
+                    <h5 class="fxn-sidebar-title mb-3">Article Details</h5>
+                    <table class="table table-sm fxn-details-table">
+                        <tr><th>ID</th><td>#@article.Id</td></tr>
+                        <tr><th>Category</th><td>@article.Category</td></tr>
+                        <tr>
+                            <th>Sentiment</th>
+                            <td>
+                                <span class="badge @(article.Type == "Good" ? "fxn-badge-bull" : "fxn-badge-bear")">
+                                    @(article.Type == "Good" ? "Bullish" : "Bearish")
+                                </span>
+                            </td>
+                        </tr>
+                        <tr><th>Author</th><td>@article.Author</td></tr>
+                    </table>
+                </div>
+
+                <a href="/Admin" class="btn fxn-btn-secondary w-100">← Back to Newsroom</a>
+            </div>
+        </div>
+    }
+</div>
