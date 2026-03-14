@@ -7,9 +7,75 @@ namespace FxWebApi.Models
         public DateTime Timestamp { get; set; }
     }
 
+    public class FxQuote
+    {
+        public string CurrencyPair { get; set; } = "AUD/USD";
+        public decimal Bid { get; set; }
+        public decimal Ask { get; set; }
+        public decimal Mid { get; set; }
+        public decimal Spread { get; set; }
+        public int SpreadPips { get; set; }
+        public DateTime Timestamp { get; set; }
+    }
+
+    public class OhlcCandle
+    {
+        public DateTime Timestamp { get; set; }
+        public decimal Open { get; set; }
+        public decimal High { get; set; }
+        public decimal Low { get; set; }
+        public decimal Close { get; set; }
+        public long Volume { get; set; }
+    }
+
+    public class OrderBookLevel
+    {
+        public decimal Price { get; set; }
+        public decimal Size { get; set; }
+        public decimal Total { get; set; }
+    }
+
+    public class OrderBook
+    {
+        public string CurrencyPair { get; set; } = "AUD/USD";
+        public List<OrderBookLevel> Bids { get; set; } = new();
+        public List<OrderBookLevel> Asks { get; set; } = new();
+        public DateTime Timestamp { get; set; }
+    }
+
+    public class MarketStatus
+    {
+        public string Trend { get; set; } = "Neutral";
+        public double Volatility { get; set; }
+        public decimal DayOpen { get; set; }
+        public decimal DayHigh { get; set; }
+        public decimal DayLow { get; set; }
+        public decimal DayChange { get; set; }
+        public decimal DayChangePct { get; set; }
+        public string Session { get; set; } = "Sydney";
+    }
+
+    public class TrendRequest
+    {
+        public string Direction { get; set; } = "neutral"; // "up", "down", "neutral"
+        public int Strength { get; set; } = 50;           // 0-100
+    }
+
+    public class TransactionRecord
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty;
+        public string CurrencyPair { get; set; } = "AUD/USD";
+        public decimal Amount { get; set; }
+        public decimal Rate { get; set; }
+        public decimal Total { get; set; }
+        public string Source { get; set; } = "API";
+        public DateTime Timestamp { get; set; }
+    }
+
     public class FxTransaction
     {
-        public string Type { get; set; } = string.Empty; // "Buy" or "Sell"
+        public string Type { get; set; } = string.Empty;
         public string CurrencyPair { get; set; } = "AUD/USD";
         public decimal Amount { get; set; }
         public decimal Rate { get; set; }
@@ -20,12 +86,20 @@ namespace FxWebApi.Models
         public bool Success { get; set; }
         public string Message { get; set; } = string.Empty;
         public FxTransaction? Transaction { get; set; }
+        public TransactionRecord? Record { get; set; }
     }
 
     public class McpRequest
     {
-        public string Action { get; set; } = string.Empty; // "buy" or "sell"
+        public string Action { get; set; } = string.Empty;
         public decimal Amount { get; set; }
+        public string? CurrencyPair { get; set; }
+    }
+
+    public class McpToolCall
+    {
+        public string Tool { get; set; } = string.Empty;
+        public Dictionary<string, object> Parameters { get; set; } = new();
     }
 
     public class McpResponse
