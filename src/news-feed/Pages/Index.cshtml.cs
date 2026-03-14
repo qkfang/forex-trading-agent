@@ -20,6 +20,6 @@ public class IndexModel : PageModel
 
     public void OnGet()
     {
-        News = _newsService.GetAllNews();
+        News = _newsService.GetAllNews().Where(n => n.IsPublished).ToList();
     }
 }
