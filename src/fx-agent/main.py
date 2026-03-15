@@ -60,8 +60,9 @@ async def get_status():
         "mode": "azure-ai-foundry" if settings.azure_ai_connection_string else "demo",
         "model": settings.azure_ai_model,
         "broker_backoffice_url": settings.broker_backoffice_url,
-        "trading_platform_url": settings.trading_platform_url,
+        "research_analytics_url": settings.research_analytics_url,
         "news_feed_url": settings.news_feed_url,
+        "trading_platform_url": settings.trading_platform_url,
         "workflow_running": orchestrator.running,
     }
 

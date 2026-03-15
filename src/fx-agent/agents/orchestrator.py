@@ -21,6 +21,7 @@ from typing import Any
 from agents.analysis_agent import AnalysisAgent
 from agents.comm_agent import CommAgent
 from agents.trader_agent import TraderAgent
+from config import SCENARIO_MIDDLE_EAST_WAR
 
 logger = logging.getLogger(__name__)
 
@@ -99,23 +100,42 @@ class Orchestrator:
         try:
             emit({"type": "workflow_start", "content": f"Starting FX trading workflow (run {run_id})", "agent": "orchestrator"})
 
-            # ── Phase 0: News Feed (scenario-driven) ──────────────────────────
-            if scenario == "middle_east_war":
+            # ── Phase 0: News Feed – publish article to news-feed service ─────
+            if scenario == SCENARIO_MIDDLE_EAST_WAR:
                 emit({"type": "phase", "content": "Phase 0: News Feed", "agent": "news_feed"})
+                from tools.market_tools import publish_news_article
+                news_title = "War erupts in Middle East: oil prices surge on supply fears"
+                news_content = (
+                    "A major armed conflict has broken out in the Middle East, sending crude oil "
+                    "prices sharply higher on fears of supply disruptions. The Australian dollar "
+                    "came under initial selling pressure as risk-off sentiment swept markets, but "
+                    "analysts note that Australia's commodity export revenue stands to benefit "
+                    "materially from elevated energy prices. AUD/USD is seen as a buying "
+                    "opportunity on any dip below 0.6580."
+                )
+                news_result_json = await publish_news_article(
+                    title=news_title,
+                    content=news_content,
+                    article_type="Good",
+                    category="FX",
+                    author="Global FX Wire",
+                    summary="Middle East war drives oil prices higher; AUD seen as buy on dips.",
+                )
+                news_result = json.loads(news_result_json)
                 emit({
                     "type": "news_published",
-                    "content": "Breaking: War erupts in Middle East – oil prices surge, AUD/USD under pressure",
+                    "content": f"Breaking: {news_title}",
                     "agent": "news_feed",
                     "article": {
-                        "title": "War erupts in Middle East: oil prices surge on supply fears",
-                        "source": "Global FX Wire",
-                        "sentiment": "mixed",
-                        "impact": "AUD/USD",
+                        "id": news_result.get("article_id"),
+                        "title": news_title,
+                        "service": "news-feed",
+                        "status": news_result.get("status"),
                     },
                 })
                 emit({
                     "type": "status",
-                    "content": "News article forwarded to Research Analytics for processing",
+                    "content": "News article published to news-feed service and forwarded to Research Analytics",
                     "agent": "news_feed",
                 })
 
@@ -159,29 +179,74 @@ class Orchestrator:
                 "recommendation": recommendation,
             })
 
-            # ── Scenario: Research note + customer engagement ──────────────────
-            if scenario == "middle_east_war":
+            # ── Scenario: Publish research note + track customer view ──────────
+            research_article_id: int | None = None
+            if scenario == SCENARIO_MIDDLE_EAST_WAR:
+                from tools.research_tools import publish_research_note, track_article_view
+
+                rec_action = recommendation.get("recommendation", "BUY")
+                rec_summary = recommendation.get("summary", "")
+                note_title = "AUD/USD – Buying Opportunity Amid Middle East Uncertainty"
+                note_content = (
+                    f"Research Note – {datetime.now(timezone.utc).strftime('%d %b %Y')}\n\n"
+                    f"**Recommendation: {rec_action} AUD/USD**\n\n"
+                    f"{rec_summary}\n\n"
+                    "**Key Drivers:**\n"
+                    + "\n".join(f"- {r}" for r in recommendation.get("reasons", []))
+                    + "\n\n**Risk Factors:**\n"
+                    + "\n".join(f"- {r}" for r in recommendation.get("risks", []))
+                )
+                note_result_json = await publish_research_note(
+                    title=note_title,
+                    summary=rec_summary or "AUD/USD buy opportunity driven by Middle East commodity tailwinds.",
+                    content=note_content,
+                    category="AUD/USD",
+                    sentiment="Bullish" if rec_action == "BUY" else ("Bearish" if rec_action == "SELL" else "Neutral"),
+                    author="FX Research Team",
+                    tags="AUD/USD,Middle East,Commodities,Geopolitical",
+                )
+                note_result = json.loads(note_result_json)
+                research_article_id = note_result.get("article_id")
                 emit({
                     "type": "research_note",
-                    "content": "Research note published: 'AUD/USD – Buying Opportunity Amid Middle East Uncertainty'",
+                    "content": f"Research note published to research-analytics portal: '{note_title}'",
                     "agent": "analysis",
                     "note": {
-                        "title": "AUD/USD – Buying Opportunity Amid Middle East Uncertainty",
-                        "summary": recommendation.get("summary", ""),
-                        "recommendation": recommendation.get("recommendation"),
-                        "published_to": "Customer Portal",
+                        "id": research_article_id,
+                        "title": note_title,
+                        "sentiment": note_result.get("sentiment"),
+                        "published_to": "Research Analytics Portal",
+                        "service": "research-analytics",
+                        "status": note_result.get("status"),
                     },
                 })
+
+                # Phase 2: Customer views the research note on the portal
                 emit({"type": "phase", "content": "Phase 2: Customer Engagement", "agent": "comm"})
+                view_result_json = await track_article_view(
+                    article_id=research_article_id or 0,
+                    user_name="John Smith",
+                    user_email="john.smith@smithcapital.com",
+                    user_company="Smith Capital",
+                    time_spent_seconds=187,
+                )
+                view_result = json.loads(view_result_json)
                 emit({
                     "type": "customer_view",
-                    "content": "Customer 'John Smith' (CUST-001) opened research note: AUD/USD – Buying Opportunity Amid Middle East Uncertainty",
+                    "content": "Customer 'John Smith' viewed research note on Research Analytics Portal – engagement recorded",
                     "agent": "comm",
-                    "customer": {"name": "John Smith", "id": "CUST-001"},
+                    "customer": {
+                        "name": "John Smith",
+                        "email": "john.smith@smithcapital.com",
+                        "company": "Smith Capital",
+                        "session_id": view_result.get("session_id"),
+                        "time_spent_seconds": view_result.get("time_spent_seconds"),
+                        "service": "research-analytics",
+                    },
                 })
                 emit({
                     "type": "broker_outreach",
-                    "content": "Customer engagement triggered broker outreach notification for CUST-001",
+                    "content": "Customer engagement logged in research-analytics. Broker notified to reach out to John Smith (Smith Capital).",
                     "agent": "comm",
                 })
 
