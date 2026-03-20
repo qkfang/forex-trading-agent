@@ -178,3 +178,115 @@ body {
 .btn:focus, .btn:active:focus, .form-control:focus {
   box-shadow: 0 0 0 0.15rem rgba(79,195,247,0.35);
 }
+
+/* ── View Tabs ── */
+.view-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1rem;
+  background: var(--bg-card-header);
+  padding: 0 1rem;
+}
+.view-tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.65rem 1.1rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.view-tab-btn:hover { color: var(--text-primary); }
+.view-tab-btn.active {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+/* ── Advanced View layout ── */
+#advancedView {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 148px);
+  min-height: 500px;
+  background: #fff;
+  border: 1px solid #d0d5e0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.adv-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 0.9rem;
+  background: #f8f9fb;
+  border-bottom: 1px solid #e0e3eb;
+  flex-shrink: 0;
+}
+.adv-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+}
+.adv-pair {
+  font-weight: 700;
+  color: #1a1a2e;
+  font-size: 0.92rem;
+}
+.adv-tf {
+  color: #6c757d;
+  font-size: 0.78rem;
+}
+.adv-ohlc {
+  color: #6c757d;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+.adv-ohlc .ohlc-o { color: #6c757d; }
+.adv-ohlc .ohlc-h { color: #26a69a; }
+.adv-ohlc .ohlc-l { color: #ef5350; }
+.adv-ohlc .ohlc-c { color: #1a1a2e; font-weight: 600; }
+.adv-header-right {
+  font-size: 0.78rem;
+  color: #6c757d;
+}
+#advChartContainer {
+  flex: 1;
+  background: #fff;
+  position: relative;
+  overflow: hidden;
+}
+#advCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.adv-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.75rem;
+  background: #f8f9fb;
+  border-top: 1px solid #e0e3eb;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.tf-btn {
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.18rem 0.55rem;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.12s, color 0.12s;
+}
+.tf-btn:hover { background: #e8eaf0; color: #222; }
+.tf-btn.active { background: #e0e3eb; color: #222; font-weight: 700; }
