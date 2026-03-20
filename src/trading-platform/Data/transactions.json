@@ -1,47 +1,110 @@
 [
   {
-    "id": 1,
-    "type": "Buy",
-    "currencyPair": "AUD/USD",
-    "amount": 10000.00,
-    "rate": 0.6550,
-    "total": 6550.00,
-    "dateTime": "2024-01-15T10:30:00"
+    "Id": 1,
+    "Type": "Buy",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 10000.00,
+    "Rate": 0.6550,
+    "Total": 6550.00,
+    "DateTime": "2024-01-15T10:30:00"
   },
   {
-    "id": 2,
-    "type": "Sell",
-    "currencyPair": "AUD/USD",
-    "amount": 5000.00,
-    "rate": 0.6580,
-    "total": 3290.00,
-    "dateTime": "2024-01-16T14:20:00"
+    "Id": 2,
+    "Type": "Sell",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 5000.00,
+    "Rate": 0.6580,
+    "Total": 3290.00,
+    "DateTime": "2024-01-16T14:20:00"
   },
   {
-    "id": 3,
-    "type": "Buy",
-    "currencyPair": "AUD/USD",
-    "amount": 15000.00,
-    "rate": 0.6520,
-    "total": 9780.00,
-    "dateTime": "2024-01-17T09:15:00"
+    "Id": 3,
+    "Type": "Buy",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 15000.00,
+    "Rate": 0.6520,
+    "Total": 9780.00,
+    "DateTime": "2024-01-17T09:15:00"
   },
   {
-    "id": 4,
-    "type": "Sell",
-    "currencyPair": "AUD/USD",
-    "amount": 8000.00,
-    "rate": 0.6600,
-    "total": 5280.00,
-    "dateTime": "2024-01-18T16:45:00"
+    "Id": 4,
+    "Type": "Sell",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 8000.00,
+    "Rate": 0.6600,
+    "Total": 5280.00,
+    "DateTime": "2024-01-18T16:45:00"
   },
   {
-    "id": 5,
-    "type": "Buy",
-    "currencyPair": "AUD/USD",
-    "amount": 12000.00,
-    "rate": 0.6545,
-    "total": 7854.00,
-    "dateTime": "2024-01-19T11:00:00"
+    "Id": 5,
+    "Type": "Buy",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 12000.00,
+    "Rate": 0.6545,
+    "Total": 7854.00,
+    "DateTime": "2024-01-19T11:00:00"
+  },
+  {
+    "Id": 6,
+    "Type": "Sell",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 10000.0,
+    "Rate": 0.656950160441712617103,
+    "Total": 6569.50,
+    "DateTime": "2026-03-20T00:33:48.3443292Z"
+  },
+  {
+    "Id": 7,
+    "Type": "Sell",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 10000.0,
+    "Rate": 0.656542516457686861103,
+    "Total": 6565.43,
+    "DateTime": "2026-03-20T00:33:52.2241024Z"
+  },
+  {
+    "Id": 8,
+    "Type": "Sell",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 10000.0,
+    "Rate": 0.657326008906789520103,
+    "Total": 6573.26,
+    "DateTime": "2026-03-20T00:33:53.6778023Z"
+  },
+  {
+    "Id": 9,
+    "Type": "Sell",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 10000.0,
+    "Rate": 0.657500837271552584103,
+    "Total": 6575.01,
+    "DateTime": "2026-03-20T00:33:54.7096653Z"
+  },
+  {
+    "Id": 10,
+    "Type": "Sell",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 10000.0,
+    "Rate": 0.657404277215893596003,
+    "Total": 6574.04,
+    "DateTime": "2026-03-20T00:33:55.4986628Z"
+  },
+  {
+    "Id": 11,
+    "Type": "Sell",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 10000.0,
+    "Rate": 0.657806370158735375003,
+    "Total": 6578.06,
+    "DateTime": "2026-03-20T00:34:00.3965762Z"
+  },
+  {
+    "Id": 12,
+    "Type": "Buy",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 10000.0,
+    "Rate": 0.657401677537783421403,
+    "Total": 6574.02,
+    "DateTime": "2026-03-20T00:34:06.2218663Z"
   }
 ]
