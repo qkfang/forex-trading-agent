@@ -25,7 +25,7 @@
     <!-- Main header -->
     <header class="site-header">
         <div class="container-xl">
-            <div class="d-flex align-items-center justify-content-between py-3">
+            <div class="d-flex align-items-center justify-content-between py-1">
                 <a class="site-logo text-decoration-none" asp-page="/Index">
                     <span class="logo-fx">FX</span><span class="logo-research">Research</span>
                 </a>
@@ -57,17 +57,17 @@
     </nav>
 
     <div class="container-xl main-content">
-        <main role="main" class="pb-5">
+        <main role="main" class="pb-2">
             @RenderBody()
         </main>
     </div>
 
     <footer class="site-footer">
         <div class="container-xl">
-            <div class="row g-4">
+            <div class="row g-2">
                 <div class="col-md-4">
                     <div class="footer-brand"><span class="logo-fx">FX</span><span class="logo-research">Research</span></div>
-                    <p class="footer-desc mt-2">Independent forex research and market analysis for professional traders and institutional clients.</p>
+                    <p class="footer-desc mt-1">Independent forex research and market analysis for professional traders and institutional clients.</p>
                 </div>
                 <div class="col-md-4">
                     <h6 class="footer-heading">Research Categories</h6>
@@ -87,7 +87,7 @@
                     </ul>
                 </div>
             </div>
-            <div class="footer-bottom mt-4">
+            <div class="footer-bottom mt-2">
                 <span>&copy; @DateTime.UtcNow.Year FX Research Portal &mdash; For informational purposes only. Not financial advice.</span>
             </div>
         </div>

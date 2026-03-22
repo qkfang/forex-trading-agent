@@ -38,7 +38,7 @@ a:hover { color: var(--fxn-orange-dk); }
 .fxn-topbar {
   background: var(--fxn-black);
   border-bottom: 1px solid var(--fxn-border);
-  padding: 0.6rem 0;
+  padding: 0.3rem 0;
 }
 
 .fxn-brand {
@@ -94,7 +94,7 @@ a:hover { color: var(--fxn-orange-dk); }
 .fxn-catbar {
   background: var(--fxn-dark);
   border-bottom: 1px solid var(--fxn-border);
-  padding: 0.4rem 0;
+  padding: 0.2rem 0;
   overflow-x: auto;
   white-space: nowrap;
 }
@@ -223,7 +223,7 @@ a:hover { color: var(--fxn-orange-dk); }
   border-radius: 4px;
   overflow: hidden;
 }
-.fxn-lead-title   { font-size: 1.6rem; font-weight: 700; line-height: 1.25; color: #fff; margin-bottom: 0.75rem; }
+.fxn-lead-title   { font-size: 1.3rem; font-weight: 700; line-height: 1.25; color: #fff; margin-bottom: 0.5rem; }
 .fxn-lead-summary { font-size: 1rem; color: var(--fxn-muted); margin-bottom: 0.75rem; }
 .fxn-lead-body    { font-size: 0.9rem; line-height: 1.7; color: var(--fxn-text); }
 .fxn-lead-sidebar { background: rgba(255,255,255,.03); border-left: 1px solid var(--fxn-border); }
@@ -254,8 +254,8 @@ a:hover { color: var(--fxn-orange-dk); }
   border-color: var(--fxn-orange);
   transform: translateY(-2px);
 }
-.fxn-article-card-top    { padding: 1rem 1rem 0.5rem; flex: 1; }
-.fxn-article-card-footer { padding: 0.5rem 1rem 0.75rem; border-top: 1px solid var(--fxn-border); display: flex; justify-content: space-between; }
+.fxn-article-card-top    { padding: 0.6rem 0.75rem 0.35rem; flex: 1; }
+.fxn-article-card-footer { padding: 0.35rem 0.75rem 0.4rem; border-top: 1px solid var(--fxn-border); display: flex; justify-content: space-between; }
 .fxn-card-title   { font-size: 0.95rem; font-weight: 600; line-height: 1.35; color: #fff; margin-bottom: 0.4rem; }
 .fxn-card-summary { font-size: 0.82rem; color: var(--fxn-muted); line-height: 1.5; }
 .fxn-card-author  { font-size: 0.72rem; color: var(--fxn-muted); }
@@ -464,7 +464,7 @@ a:hover { color: var(--fxn-orange-dk); }
   border-top: 1px solid var(--fxn-border);
   color: var(--fxn-muted);
   font-size: 0.78rem;
-  padding: 0.75rem 0;
+  padding: 0.4rem 0;
 }
 .fxn-footer-link { color: var(--fxn-muted); }
 .fxn-footer-link:hover { color: var(--fxn-text); }
