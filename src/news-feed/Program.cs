@@ -6,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddSingleton<NewsService>();
 builder.Services.AddHttpClient<NewsPublishService>();
+builder.Services.AddSingleton<EventHubPublishService>();
 builder.Services.AddHttpClient("aggregator", client =>
 {
     client.Timeout = TimeSpan.FromSeconds(5);

@@ -14,7 +14,10 @@
             <h2 class="fxn-page-title mb-0">Newsroom</h2>
             <small class="text-muted">Create, manage and publish articles to the FX news feed</small>
         </div>
-        <a href="/" class="btn fxn-btn-secondary">← Live Feed</a>
+        <div class="d-flex gap-2">
+            <a href="/Admin/BatchPublish" class="btn fxn-btn-create">Batch Publish to Fabric</a>
+            <a href="/" class="btn fxn-btn-secondary">← Live Feed</a>
+        </div>
     </div>
 
     @if (!string.IsNullOrEmpty(Model.Message))

@@ -1,0 +1,187 @@
+@page
+@model FxWebNews.Pages.Admin.BatchPublishModel
+@{
+    ViewData["Title"] = "Batch Publish to Fabric";
+    var drafts = Model.Articles.Where(a => !a.IsPublished).ToList();
+    var published = Model.Articles.Where(a => a.IsPublished).ToList();
+}
+
+<div class="container-fluid px-4 py-3">
+
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb fxn-breadcrumb">
+            <li class="breadcrumb-item"><a href="/Admin">Newsroom</a></li>
+            <li class="breadcrumb-item active">Batch Publish to Fabric</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fxn-page-title mb-0">Batch Publish to Fabric Event Hub</h2>
+            <small class="text-muted">Select articles and send them as a JSON batch to the Fabric Event Stream</small>
+        </div>
+        <a href="/Admin" class="btn fxn-btn-secondary">← Back to Newsroom</a>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="alert alert-@(Model.MessageType ?? "success") alert-dismissible fade show" role="alert">
+            @Model.Message
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <form method="post">
+        <div class="row g-4">
+
+            <!-- Selection panel -->
+            <div class="col-lg-8">
+
+                <!-- Published articles -->
+                <div class="fxn-table-card mb-4">
+                    <div class="fxn-table-header d-flex align-items-center justify-content-between px-4 py-3">
+                        <span class="fxn-table-title">Published Articles <span class="fxn-counter fxn-counter-live">@published.Count</span></span>
+                        <button type="button" class="btn btn-sm fxn-btn-secondary" onclick="toggleAll('published')">Select / Deselect All</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table fxn-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width:40px"><input type="checkbox" id="chkAllPublished" onclick="toggleAll('published')"></th>
+                                    <th>Headline</th>
+                                    <th>Cat.</th>
+                                    <th>Sentiment</th>
+                                    <th>Published</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (published.Any())
+                                {
+                                    foreach (var a in published)
+                                    {
+                                        <tr>
+                                            <td><input type="checkbox" name="selectedArticles" value="@a.Id" class="chk-published article-checkbox"></td>
+                                            <td class="fxn-td-headline">@a.Title</td>
+                                            <td><span class="fxn-category-badge">@a.Category</span></td>
+                                            <td>
+                                                <span class="badge @(a.Type == "Good" ? "fxn-badge-bull" : "fxn-badge-bear")">
+                                                    @(a.Type == "Good" ? "▲" : "▼")
+                                                </span>
+                                            </td>
+                                            <td class="fxn-td-date">@(a.PublishedAt?.ToString("dd MMM, HH:mm") ?? "—")</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr><td colspan="5" class="text-center text-muted py-3">No published articles</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Draft articles -->
+                <div class="fxn-table-card">
+                    <div class="fxn-table-header d-flex align-items-center justify-content-between px-4 py-3">
+                        <span class="fxn-table-title">Drafts <span class="fxn-counter">@drafts.Count</span></span>
+                        <button type="button" class="btn btn-sm fxn-btn-secondary" onclick="toggleAll('drafts')">Select / Deselect All</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table fxn-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width:40px"><input type="checkbox" id="chkAllDrafts" onclick="toggleAll('drafts')"></th>
+                                    <th>Headline</th>
+                                    <th>Cat.</th>
+                                    <th>Sentiment</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (drafts.Any())
+                                {
+                                    foreach (var a in drafts)
+                                    {
+                                        <tr>
+                                            <td><input type="checkbox" name="selectedArticles" value="@a.Id" class="chk-drafts article-checkbox"></td>
+                                            <td class="fxn-td-headline">@a.Title</td>
+                                            <td><span class="fxn-category-badge">@a.Category</span></td>
+                                            <td>
+                                                <span class="badge @(a.Type == "Good" ? "fxn-badge-bull" : "fxn-badge-bear")">
+                                                    @(a.Type == "Good" ? "▲" : "▼")
+                                                </span>
+                                            </td>
+                                            <td class="fxn-td-date">@a.PublishedDate.ToString("dd MMM, HH:mm")</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr><td colspan="5" class="text-center text-muted py-3">No drafts</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Action sidebar -->
+            <div class="col-lg-4">
+                <div class="fxn-sidebar-card p-4 mb-3">
+                    <h5 class="fxn-sidebar-title mb-3">Batch Publish</h5>
+                    <p class="text-muted small mb-3">
+                        Selected articles will be serialised as JSON events and sent as a batch to the Fabric Event Stream via Event Hub.
+                    </p>
+
+                    <div class="fxn-status-indicator fxn-status-draft mb-3">
+                        <span id="selectedCount">0</span> article(s) selected
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fxn-label">Target</label>
+                        <div class="small text-muted" style="word-break:break-all;">
+                            <strong>Event Hub:</strong> es_fa73e095-515c-48fd-ad54-1ef70ad7bc34<br />
+                            <strong>Namespace:</strong> esehsyw4hwncugmy8frez7.servicebus.windows.net
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn fxn-btn-publish w-100"
+                            onclick="return confirm('Send selected articles to Fabric Event Hub?')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send me-1" viewBox="0 0 16 16">
+                            <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"/>
+                        </svg>
+                        Send Batch to Fabric
+                    </button>
+                </div>
+
+                <a href="/Admin" class="btn fxn-btn-secondary w-100">← Back to Newsroom</a>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleAll(group) {
+            const checkboxes = document.querySelectorAll('.chk-' + group);
+            const header = document.getElementById(group === 'published' ? 'chkAllPublished' : 'chkAllDrafts');
+            const checked = header.checked;
+            checkboxes.forEach(cb => cb.checked = checked);
+            updateCount();
+        }
+
+        function updateCount() {
+            const count = document.querySelectorAll('.article-checkbox:checked').length;
+            document.getElementById('selectedCount').textContent = count;
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.article-checkbox').forEach(cb => {
+                cb.addEventListener('change', updateCount);
+            });
+        });
+    </script>
+}
