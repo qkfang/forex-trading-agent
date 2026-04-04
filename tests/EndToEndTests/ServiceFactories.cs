@@ -59,7 +59,7 @@ public sealed class TradingPlatformFactory : WebApplicationFactory<FxWebUI.Servi
 // ── Broker Back-Office factory ───────────────────────────────────────────────
 
 /// <summary>
-/// WebApplicationFactory for the <c>broker-crm</c> service.
+/// WebApplicationFactory for the <c>crm-broker</c> service.
 /// Outbound calls to the Trading Platform are routed through
 /// <paramref name="tradingPlatformHandler"/> (from <see cref="TradingPlatformFactory"/>).
 /// </summary>

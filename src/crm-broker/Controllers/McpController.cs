@@ -6,7 +6,7 @@ namespace FxWebApi.Controllers
 {
     /// <summary>
     /// MCP (Model Context Protocol) endpoint.
-    /// Exposes FX trading tools for AI agents / broker-crm integration.
+    /// Exposes FX trading tools for AI agents / crm-broker integration.
     /// </summary>
     [ApiController]
     [Route("mcp")]

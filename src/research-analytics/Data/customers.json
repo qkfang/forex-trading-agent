@@ -1,0 +1,12 @@
+[
+  { "id": 1, "name": "Alice Johnson", "email": "alice.johnson@example.com", "phone": "+1-555-0101", "company": "Global Trading Co", "createdAt": "2025-09-15T08:30:00Z" },
+  { "id": 2, "name": "Bob Smith", "email": "bob.smith@example.com", "phone": "+1-555-0102", "company": "Pacific Investments", "createdAt": "2025-10-02T14:20:00Z" },
+  { "id": 3, "name": "Carlos Rivera", "email": "carlos.rivera@example.com", "phone": "+44-20-7946-0201", "company": "Euro Capital Ltd", "createdAt": "2025-10-18T09:00:00Z" },
+  { "id": 4, "name": "Diana Chen", "email": "diana.chen@example.com", "phone": "+852-3456-7890", "company": "Asia Macro Fund", "createdAt": "2025-11-05T11:45:00Z" },
+  { "id": 5, "name": "Erik Lindberg", "email": "erik.lindberg@example.com", "phone": "+46-8-123-4567", "company": "Nordic FX Partners", "createdAt": "2025-11-20T07:15:00Z" },
+  { "id": 6, "name": "Fatima Al-Rashid", "email": "fatima.alrashid@example.com", "phone": "+971-4-555-6789", "company": "Gulf Finance Group", "createdAt": "2025-12-01T10:30:00Z" },
+  { "id": 7, "name": "Grace Park", "email": "grace.park@example.com", "phone": "+82-2-555-3456", "company": "Seoul Wealth Mgmt", "createdAt": "2026-01-10T13:00:00Z" },
+  { "id": 8, "name": "Hugo Martinez", "email": "hugo.martinez@example.com", "phone": "+52-55-5555-7890", "company": "LatAm FX Advisors", "createdAt": "2026-01-25T16:45:00Z" },
+  { "id": 9, "name": "Isla Thompson", "email": "isla.thompson@example.com", "phone": "+61-2-5555-1234", "company": "Oceania Partners", "createdAt": "2026-02-14T08:00:00Z" },
+  { "id": 10, "name": "James Okafor", "email": "james.okafor@example.com", "phone": "+234-1-555-9012", "company": "Frontier Markets Inc", "createdAt": "2026-03-01T12:30:00Z" }
+]

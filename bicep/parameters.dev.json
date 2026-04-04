@@ -3,10 +3,10 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "baseName": {
-      "value": "fx"
+      "value": "fxag"
     },
     "location": {
-      "value": "eastus3"
+      "value": "centralus"
     },
     "principals": {
       "value": [
