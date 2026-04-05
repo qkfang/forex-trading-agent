@@ -9,6 +9,7 @@
 <div class="view-tabs">
     <button class="view-tab-btn active" id="btnSimple" onclick="switchView('simple')">Simple</button>
     <button class="view-tab-btn" id="btnAdvanced" onclick="switchView('advanced')">Advanced</button>
+    <button class="view-tab-btn" id="btnBlotter" onclick="switchView('blotter')">Aurora</button>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════
@@ -157,21 +158,179 @@
 
 </div><!-- /advancedView -->
 
+<!-- ═══════════════════════════════════════════════════════════════
+     BLOTTER / AURORA VIEW
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="blotterView" style="display:none">
+
+    <!-- Prices header bar -->
+    <div class="fx-prices-bar">
+        <span class="fx-prices-label">Prices</span>
+        <span class="fx-prices-section">Foreign Exchange</span>
+        <button class="fx-add-ccy" onclick="addCcyPrompt()">ADD CCY +</button>
+    </div>
+
+    <!-- FX price tiles -->
+    <div class="fx-tiles-grid" id="fxTilesGrid"></div>
+
+    <!-- Order ticket modal (fixed overlay) -->
+    <div class="order-overlay" id="orderOverlay" style="display:none">
+        <div class="order-ticket">
+            <div class="ot-header">
+                <div class="ot-header-pair">
+                    <span class="ot-title">Order Ticket</span>
+                    <span class="ot-pair" id="otPairLabel">EUR/USD</span>
+                </div>
+                <button class="ot-close" onclick="closeOrderTicket()">&times;</button>
+            </div>
+            <div class="ot-body">
+                <div class="ot-row">
+                    <span class="ot-lbl">Order Type</span>
+                    <div class="ot-ctrl">
+                        <select class="ot-select" id="otOrderType">
+                            <option>LIMIT</option>
+                            <option>MARKET</option>
+                            <option>STOP</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="ot-row">
+                    <span class="ot-lbl">Direction</span>
+                    <div class="ot-ctrl">
+                        <div class="ot-toggle">
+                            <button class="ot-tog active-buy" id="otBuyBtn" onclick="setDirection('BUY')">BUY</button>
+                            <button class="ot-tog" id="otSellBtn" onclick="setDirection('SELL')">SELL</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="ot-row">
+                    <span class="ot-lbl">Currency</span>
+                    <div class="ot-ctrl">
+                        <div class="ot-toggle" id="otCcyToggle"></div>
+                    </div>
+                </div>
+                <div class="ot-row">
+                    <span class="ot-lbl">Qty</span>
+                    <div class="ot-input-grp">
+                        <button class="ot-step" onclick="stepQty(-1000000)">&#8722;</button>
+                        <input class="ot-input" id="otQty" type="text" value="1,000,000.00" />
+                        <button class="ot-step" onclick="stepQty(1000000)">+</button>
+                    </div>
+                </div>
+                <div class="ot-row">
+                    <span class="ot-lbl">Limit Price</span>
+                    <div class="ot-input-grp">
+                        <button class="ot-step" onclick="stepPrice(-0.0001)">&#8722;</button>
+                        <input class="ot-input" id="otLimitPrice" type="text" value="0.0000" />
+                        <button class="ot-step" onclick="stepPrice(0.0001)">+</button>
+                    </div>
+                </div>
+                <div class="ot-row">
+                    <span class="ot-lbl">Mkt Price</span>
+                    <div class="ot-ctrl ot-mkt-row">
+                        <span id="otMktPrice">0.0000</span>
+                        <span class="ot-mkt-pips" id="otMktPips"></span>
+                    </div>
+                </div>
+                <div class="ot-row">
+                    <span class="ot-lbl">Account</span>
+                    <div class="ot-ctrl">
+                        <select class="ot-select">
+                            <option>PROP-01</option>
+                            <option>CLIENT-A</option>
+                            <option>CLIENT-B</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="ot-row">
+                    <span class="ot-lbl">Pdt Type</span>
+                    <div class="ot-ctrl">
+                        <select class="ot-select">
+                            <option>SPOT</option>
+                            <option>FORWARD</option>
+                            <option>SWAP</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="ot-row">
+                    <span class="ot-lbl">Time In Force</span>
+                    <div class="ot-ctrl">
+                        <select class="ot-select">
+                            <option>GTC</option>
+                            <option>DAY</option>
+                            <option>IOC</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="ot-row">
+                    <span class="ot-lbl">Additional Text</span>
+                    <div class="ot-ctrl">
+                        <input class="ot-input" type="text" placeholder="Optional notes" style="width:100%" />
+                    </div>
+                </div>
+            </div>
+            <div class="ot-footer">
+                <button class="ot-btn-reset"  onclick="resetOrderTicket()">&#8635; RESET</button>
+                <button class="ot-btn-clone"  onclick="cloneOrder()">&#10697; CLONE</button>
+                <button class="ot-btn-submit" onclick="submitOrder()">&#10003; SUBMIT</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blotter -->
+    <div class="blotter-section">
+        <div class="blotter-bar">Blotter</div>
+        <div class="table-responsive">
+            <table class="blotter-tbl" id="blotterTbl">
+                <thead>
+                    <tr>
+                        <th>Created</th>
+                        <th>Last Updated</th>
+                        <th>Status</th>
+                        <th>Order Type</th>
+                        <th>Account Code</th>
+                        <th>Product Type</th>
+                        <th>Security</th>
+                        <th>Side</th>
+                        <th>Currency</th>
+                        <th>Qty</th>
+                        <th>Cum Qty</th>
+                        <th>Avg Px</th>
+                        <th>TIF</th>
+                        <th>Contra</th>
+                    </tr>
+                </thead>
+                <tbody id="blotterTbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+</div><!-- /blotterView -->
+
 @section Scripts {
 <script>
 // ============================================================================
 //  VIEW SWITCHING
 // ============================================================================
 var advancedChartInitialized = false;
+var blotterInitialized = false;
 
 function switchView(view) {
-    var isSimple = (view === 'simple');
-    document.getElementById('simpleView').style.display   = isSimple ? '' : 'none';
-    document.getElementById('advancedView').style.display = isSimple ? 'none' : '';
+    var isSimple   = (view === 'simple');
+    var isAdvanced = (view === 'advanced');
+    var isBlotter  = (view === 'blotter');
+    document.getElementById('simpleView').style.display    = isSimple   ? '' : 'none';
+    document.getElementById('advancedView').style.display  = isAdvanced ? '' : 'none';
+    document.getElementById('blotterView').style.display   = isBlotter  ? '' : 'none';
     document.getElementById('btnSimple').classList.toggle('active', isSimple);
-    document.getElementById('btnAdvanced').classList.toggle('active', !isSimple);
-    if (!isSimple && !advancedChartInitialized) {
+    document.getElementById('btnAdvanced').classList.toggle('active', isAdvanced);
+    document.getElementById('btnBlotter').classList.toggle('active', isBlotter);
+    if (isAdvanced && !advancedChartInitialized) {
         setTimeout(initAdvancedChart, 50);
+    }
+    if (isBlotter && !blotterInitialized) {
+        blotterInitialized = true;
+        initBlotterView();
     }
 }
 

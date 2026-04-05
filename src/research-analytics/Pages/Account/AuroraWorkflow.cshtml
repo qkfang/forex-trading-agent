@@ -1315,7 +1315,69 @@
                     </div>
                 </div>
                 <div style="margin-top:10px;font-size:10px;color:var(--green);"><i class="fa-solid fa-circle-check"></i> Record retrieved successfully</div>
+
+                <div style="margin-top:14px;">
+                    <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">
+                        Position Summary – Bank Deals
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%;border-collapse:collapse;font-size:10px;white-space:nowrap;">
+                            <thead>
+                                <tr>
+                                    <th style="background:var(--panel2);color:var(--text-muted);font-weight:600;font-size:9px;letter-spacing:0.5px;text-transform:uppercase;padding:5px 8px;border-bottom:1px solid var(--border);text-align:left;">CCY</th>
+                                    <th style="background:var(--panel2);color:var(--text-muted);font-weight:600;font-size:9px;letter-spacing:0.5px;text-transform:uppercase;padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;">25-Jul-2025</th>
+                                    <th style="background:var(--panel2);color:var(--text-muted);font-weight:600;font-size:9px;letter-spacing:0.5px;text-transform:uppercase;padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;">28-Jul-2025</th>
+                                    <th style="background:var(--panel2);color:var(--text-muted);font-weight:600;font-size:9px;letter-spacing:0.5px;text-transform:uppercase;padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;">29-Jul-2025</th>
+                                    <th style="background:var(--panel2);color:var(--text-muted);font-weight:600;font-size:9px;letter-spacing:0.5px;text-transform:uppercase;padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;">30-Jul-2025</th>
+                                    <th style="background:var(--panel2);color:var(--text-muted);font-weight:600;font-size:9px;letter-spacing:0.5px;text-transform:uppercase;padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;">31-Jul-2025</th>
+                                    <th style="background:var(--panel2);color:var(--text-muted);font-weight:600;font-size:9px;letter-spacing:0.5px;text-transform:uppercase;padding:5px 8px;border-bottom:1px solid var(--border);text-align:right;">&gt; 31-Jul-2025</th>
+                                </tr>
+                            </thead>
+                            <tbody id="positionBody"></tbody>
+                        </table>
+                    </div>
+                    <div style="margin-top:5px;font-size:9px;color:var(--text-dim);display:flex;justify-content:space-between;">
+                        <span>Number of rows <strong style="color:var(--text-muted)" id="posRowCount">0</strong></span>
+                        <span id="posLastUpdated" style="color:var(--text-dim);"></span>
+                    </div>
+                </div>
             `;
+
+            // Render position grid
+            const positions = [
+                { ccy: 'AUD', flag: '🇦🇺', d1: 8996330.00,      d2: -1693459.50,     d3: -958926.00,       d4: -2197670.00,    d5: 1501000.00,    dn: -9853963.00  },
+                { ccy: 'BRL', flag: '🇧🇷', d1: -561381800.00,   d2: -77751800.00,    d3: null,             d4: 4568200.00,     d5: null,          dn: -9410791800.00 },
+                { ccy: 'CAD', flag: '🇨🇦', d1: 13616.60,        d2: 91795.50,        d3: null,             d4: null,           d5: null,          dn: -91642.10    },
+                { ccy: 'EUR', flag: '🇪🇺', d1: null,            d2: 462368.20,       d3: -30000000.00,     d4: 30000000.00,    d5: 297000.00,     dn: -523806762.50},
+                { ccy: 'GBP', flag: '🇬🇧', d1: 118000.00,       d2: 59000.00,        d3: null,             d4: -141000.00,     d5: -65000.00,     dn: 35254.80     },
+                { ccy: 'INR', flag: '🇮🇳', d1: -4467944540.00,  d2: 7402846811.10,   d3: -1467580000.00,   d4: 100587000.00,   d5: -6529000.00,   dn: -55601656016.16 },
+                { ccy: 'JPY', flag: '🇯🇵', d1: null,            d2: -2436340,        d3: null,             d4: 26271946,       d5: null,          dn: 4533468233   },
+                { ccy: 'KRW', flag: '🇰🇷', d1: 389661000,       d2: 649435000,       d3: 224690000,        d4: 484464000,      d5: null,          dn: null         },
+                { ccy: 'USD', flag: '🇺🇸', d1: 163926116.36,    d2: -88005700.47,    d3: 53629887.86,      d4: -36484971.97,   d5: -1266006.23,   dn: 3516657892.85 }
+            ];
+
+            function fmtPos(v) {
+                if (v === null || v === undefined) return '<span style="color:var(--text-dim)">-</span>';
+                const neg = v < 0;
+                const abs = Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                return '<span style="color:' + (neg ? 'var(--red)' : 'var(--text)') + '">' + (neg ? '-' : '') + abs + '</span>';
+            }
+
+            const tbody = document.getElementById('positionBody');
+            tbody.innerHTML = positions.map(p => `
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
+                    <td style="padding:5px 8px;color:var(--text);font-weight:600;">${p.flag} ${p.ccy}</td>
+                    <td style="padding:5px 8px;text-align:right;">${fmtPos(p.d1)}</td>
+                    <td style="padding:5px 8px;text-align:right;">${fmtPos(p.d2)}</td>
+                    <td style="padding:5px 8px;text-align:right;">${fmtPos(p.d3)}</td>
+                    <td style="padding:5px 8px;text-align:right;">${fmtPos(p.d4)}</td>
+                    <td style="padding:5px 8px;text-align:right;">${fmtPos(p.d5)}</td>
+                    <td style="padding:5px 8px;text-align:right;">${fmtPos(p.dn)}</td>
+                </tr>
+            `).join('');
+            document.getElementById('posRowCount').textContent = positions.length;
+            document.getElementById('posLastUpdated').textContent = 'Last updated: just now';
+
             const footer = document.querySelector('#step1Panel .ticket-footer');
             footer.innerHTML = `
                 <button class="btn-ticket btn-reset" onclick="goPhase(1); location.reload();">RESET</button>

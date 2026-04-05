@@ -45,6 +45,11 @@
             <i class="fa-solid fa-robot me-1"></i> Suggest Customer
         </button>
     </li>
+    <li class="nav-item">
+        <button class="nav-link" id="tab-chat-btn" data-bs-toggle="tab" data-bs-target="#tab-chat">
+            <i class="fa-solid fa-comments me-1"></i> Ask AI
+        </button>
+    </li>
 </ul>
 
 <div class="tab-content">
@@ -179,6 +184,15 @@
                     }
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- ── Tab 3: Ask AI ── -->
+    <div class="tab-pane fade" id="tab-chat">
+        <div class="d-flex gap-4" style="height: 640px;">
+            <div class="flex-fill" style="min-width: 0;">
+                <openai-chatkit id="account-chatkit" style="width:100%; height:100%; border-radius:8px; overflow:hidden;"></openai-chatkit>
+            </div>
         </div>
     </div>
 
@@ -431,6 +445,35 @@
         }
         el.textContent = text;
     }
+})();
+</script>
+<script>
+(function () {
+    var initialized = false;
+    document.getElementById('tab-chat-btn').addEventListener('shown.bs.tab', function () {
+        if (initialized) return;
+        initialized = true;
+        customElements.whenDefined('openai-chatkit').then(function () {
+            var chatkit = document.getElementById('account-chatkit');
+            if (!chatkit) return;
+            chatkit.setOptions({
+                api: {
+                    url: '/chatkit',
+                    domainKey: 'fx-research'
+                },
+                history: { enabled: false },
+                startScreen: {
+                    greeting: 'FX Research Assistant',
+                    prompts: [
+                        { label: 'Market outlook', prompt: 'What is the current market outlook for EUR/USD?' },
+                        { label: 'Trading strategy', prompt: 'What trading strategies work best in current conditions?' },
+                        { label: 'Currency analysis', prompt: 'Provide a technical analysis for USD/JPY.' }
+                    ]
+                },
+                composer: { placeholder: 'Ask about market research...' }
+            });
+        });
+    });
 })();
 </script>
 }
