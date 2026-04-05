@@ -1,7 +1,6 @@
 using Azure.AI.Projects;
-using Azure.AI.Projects.Agents;
 using Azure.Identity;
-using Microsoft.Agents.AI.Foundry;
+using FxAgent.Agents;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,29 +26,10 @@ var deploymentName = app.Configuration["AZURE_AI_MODEL_DEPLOYMENT_NAME"] ?? "gpt
 
 AIProjectClient aiProjectClient = new(new Uri(endpoint), new AzureCliCredential());
 
-var agentDefs = new[]
-{
-    ("fxag-research",    "You are an FX market research analyst. Analyze currency research articles, identify patterns, and summarize research findings to help traders understand market dynamics."),
-    ("fxag-suggestion",  "You are an FX trading suggestion engine. Based on market conditions, news, and portfolio data, provide actionable trading suggestions and recommendations for currency pairs."),
-    ("fxag-trader",      "You are an FX trader assistant. Help traders interpret news feeds, evaluate open positions, and support day-to-day trading decisions across currency pairs."),
-    ("fxag-insight",     "You are an FX market insight specialist. Deliver concise market insights, portfolio performance summaries, and trend analysis to support strategic investment decisions."),
-};
-
-var agentVersionTasks = agentDefs.Select(def =>
-    aiProjectClient.AgentAdministrationClient.CreateAgentVersionAsync(
-        def.Item1,
-        new ProjectsAgentVersionCreationOptions(
-            new DeclarativeAgentDefinition(model: deploymentName)
-            {
-                Instructions = def.Item2,
-            })));
-
-var agentVersions = await Task.WhenAll(agentVersionTasks);
-
-FoundryAgent researchAgent    = aiProjectClient.AsAIAgent(agentVersions[0]);
-FoundryAgent suggestionAgent  = aiProjectClient.AsAIAgent(agentVersions[1]);
-FoundryAgent traderAgent      = aiProjectClient.AsAIAgent(agentVersions[2]);
-FoundryAgent insightAgent     = aiProjectClient.AsAIAgent(agentVersions[3]);
+var researchAgent = new FxAgResearch(aiProjectClient, deploymentName);
+var suggestionAgent = new FxAgSuggestion(aiProjectClient, deploymentName);
+var traderAgent = new FxAgTrader(aiProjectClient, deploymentName);
+var insightAgent = new FxAgInsight(aiProjectClient, deploymentName);
 
 logger.LogInformation("Agents created: fxag-research, fxag-suggestion, fxag-trader, fxag-insight");
 

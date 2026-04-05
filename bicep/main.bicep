@@ -24,6 +24,7 @@ var webAppPlanName = '${baseName}-asp'
 var staticWebAppName = '${baseName}-swa'
 var foundryName = '${baseName}-foundry'
 var fabricCapacityName = '${baseName}fabric'
+var bingSearchName = '${baseName}-search-${uniqueSuffix}'
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   name: webAppPlanName
@@ -134,6 +135,17 @@ module appInsights 'modules/appinsights.bicep' = {
   }
 }
 
+module bingSearch 'modules/bingsearch.bicep' = {
+  name: 'bingSearchDeployment'
+  params: {
+    name: bingSearchName
+    location: location
+    tags: commonTags
+    webAppPrincipalId: crmBrokerApp.outputs.principalId
+    principals: principals
+  }
+}
+
 module crmBrokerApp 'modules/webapp.bicep' = {
   name: 'crmBrokerDeployment'
   params: {
@@ -152,7 +164,8 @@ module crmBrokerApp 'modules/webapp.bicep' = {
   }
 }
 
-module fxAgentApp 'modules/webapp.bicep' = {
+modu  { name: 'BING_SEARCH_ENDPOINT', value: bingSearch.outputs.endpoint }
+    le fxAgentApp 'modules/webapp.bicep' = {
   name: 'fxAgentDeployment'
   params: {
     name: '${baseName}-agent'
