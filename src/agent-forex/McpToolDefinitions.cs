@@ -7,7 +7,7 @@ namespace FxAgent;
 
 public static class McpToolDefinitions
 {
-    public static IEnumerable<ToolDefinition> GetAllToolDefinitions()
+    public static IEnumerable<FunctionToolDefinition> GetAllToolDefinitions()
     {
         yield return new FunctionToolDefinition("get_all_customers", "Get all customers with their portfolios");
         yield return new FunctionToolDefinition("get_customer", "Get customer by ID", new BinaryData(JsonSerializer.Serialize(new

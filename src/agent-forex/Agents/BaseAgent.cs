@@ -10,11 +10,16 @@ public abstract class BaseAgent
     protected readonly FoundryAgent _agent;
     protected readonly AIProjectClient _aiProjectClient;
 
-    protected BaseAgent(AIProjectClient aiProjectClient, string agentId, string deploymentName, string instructions)
+    protected BaseAgent(AIProjectClient aiProjectClient, string agentId, string deploymentName, string instructions, params FunctionToolDefinition[] additionalTools)
     {
         _aiProjectClient = aiProjectClient;
         
-        var tools = McpToolDefinitions.GetAllToolDefinitions().ToList();
+        var tools = McpToolDefinitions.GetAllToolDefinitions().ToList<FunctionToolDefinition>();
+        
+        if (additionalTools != null && additionalTools.Length > 0)
+        {
+            tools.AddRange(additionalTools);
+        }
         
         var agentVersion = aiProjectClient.AgentAdministrationClient.CreateAgentVersion(
             agentId,
