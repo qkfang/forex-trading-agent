@@ -7,3 +7,7 @@
 - never include any business name or application name from customer
 - make sure remove any sensitive information in mock data
 - any sample or mock telemetry data must follow open telemetry schema
+
+
+- must only use microsoft agent framework 1.0, and foundry agent server v2 
+- agent interaction must use openai responeses apis only 
