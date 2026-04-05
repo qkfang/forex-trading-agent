@@ -31,6 +31,6 @@ public abstract class BaseAgent
     public async Task<string> RunAsync(string message)
     {
         var response = await _agent.RunAsync(message);
-        return ""; 
+        return response.Text;
     }
 }
