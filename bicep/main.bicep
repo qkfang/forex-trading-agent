@@ -135,17 +135,6 @@ module appInsights 'modules/appinsights.bicep' = {
   }
 }
 
-module bingSearch 'modules/bingsearch.bicep' = {
-  name: 'bingSearchDeployment'
-  params: {
-    name: bingSearchName
-    location: location
-    tags: commonTags
-    webAppPrincipalId: crmBrokerApp.outputs.principalId
-    principals: principals
-  }
-}
-
 module crmBrokerApp 'modules/webapp.bicep' = {
   name: 'crmBrokerDeployment'
   params: {
@@ -164,8 +153,18 @@ module crmBrokerApp 'modules/webapp.bicep' = {
   }
 }
 
-modu  { name: 'BING_SEARCH_ENDPOINT', value: bingSearch.outputs.endpoint }
-    le fxAgentApp 'modules/webapp.bicep' = {
+module bingSearch 'modules/bingsearch.bicep' = {
+  name: 'bingSearchDeployment'
+  params: {
+    name: bingSearchName
+    location: location
+    tags: commonTags
+    webAppPrincipalId: crmBrokerApp.outputs.principalId
+    principals: principals
+  }
+}
+
+module fxAgentApp 'modules/webapp.bicep' = {
   name: 'fxAgentDeployment'
   params: {
     name: '${baseName}-agent'
@@ -176,6 +175,7 @@ modu  { name: 'BING_SEARCH_ENDPOINT', value: bingSearch.outputs.endpoint }
       { name: 'AZURE_AI_PROJECT_ENDPOINT', value: azureAIFoundryEndpoint }
       { name: 'MODEL_DEPLOYMENT_NAME', value: azureAIFoundryDeployment }
       { name: 'CRM_BROKER_URL', value: 'https://${baseName}-broker.azurewebsites.net' }
+      { name: 'AZURE_SEARCH_ENDPOINT', value: bingSearch.outputs.endpoint }
     ]
   }
 }

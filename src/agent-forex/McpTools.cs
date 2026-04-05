@@ -10,6 +10,11 @@ public static class McpTools
         BaseAddress = new Uri(Environment.GetEnvironmentVariable("API_BASE_URL") ?? "http://localhost:5297")
     };
 
+    private static readonly HttpClient _mcpHttp = new()
+    {
+        BaseAddress = new Uri(Environment.GetEnvironmentVariable("MCP_BROKER_URL") ?? "http://localhost:5269")
+    };
+
     public static class Customers
     {
         public static async Task<string> GetAll()
@@ -308,33 +313,83 @@ public static class McpTools
         }
     }
 
-    public static class BingSearch
+    public static class TradingMcp
     {
-        private static readonly HttpClient _searchHttp = new();
-        private static readonly string _endpoint = Environment.GetEnvironmentVariable("BING_SEARCH_ENDPOINT") ?? "";
+        public static async Task<string> GetQuote()
+        {
+            var response = await _mcpHttp.PostAsync("/mcp/call",
+                new StringContent(JsonSerializer.Serialize(new { tool = "fx_quote", parameters = new { } }), Encoding.UTF8, "application/json"));
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        public static async Task<string> ExecuteBuy(decimal amount)
+        {
+            var response = await _mcpHttp.PostAsync("/mcp/call",
+                new StringContent(JsonSerializer.Serialize(new { tool = "fx_buy", parameters = new { amount } }), Encoding.UTF8, "application/json"));
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        public static async Task<string> ExecuteSell(decimal amount)
+        {
+            var response = await _mcpHttp.PostAsync("/mcp/call",
+                new StringContent(JsonSerializer.Serialize(new { tool = "fx_sell", parameters = new { amount } }), Encoding.UTF8, "application/json"));
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        public static async Task<string> GetHistory(int bars = 50)
+        {
+            var response = await _mcpHttp.PostAsync("/mcp/call",
+                new StringContent(JsonSerializer.Serialize(new { tool = "fx_history", parameters = new { bars } }), Encoding.UTF8, "application/json"));
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        public static async Task<string> GetMarketStatus()
+        {
+            var response = await _mcpHttp.PostAsync("/mcp/call",
+                new StringContent(JsonSerializer.Serialize(new { tool = "fx_market_status", parameters = new { } }), Encoding.UTF8, "application/json"));
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        public static async Task<string> SetTrend(string direction, int strength = 70)
+        {
+            var response = await _mcpHttp.PostAsync("/mcp/call",
+                new StringContent(JsonSerializer.Serialize(new { tool = "fx_set_trend", parameters = new { direction, strength } }), Encoding.UTF8, "application/json"));
+            return await response.Content.ReadAsStringAsync();
+        }
+    }
+
+    public static class AzureSearch
+    {
+        private static readonly string _endpoint = Environment.GetEnvironmentVariable("AZURE_SEARCH_ENDPOINT") ?? "";
 
         public static async Task<string> SearchWeb(string query, int count = 10)
         {
             if (string.IsNullOrEmpty(_endpoint))
-                return "Bing Search endpoint not configured";
+                return JsonSerializer.Serialize(new { error = "Azure Search endpoint not configured" });
 
-            var requestUri = $"{_endpoint}/v7.0/search?q={Uri.EscapeDataString(query)}&count={count}";
-            var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
-            
-            var response = await _searchHttp.SendAsync(request);
-            return await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Serialize(new
+            {
+                message = "Web search via Azure AI Search",
+                query,
+                count,
+                endpoint = _endpoint,
+                note = "Configure Azure AI Search index for web grounding"
+            });
         }
 
         public static async Task<string> SearchNews(string query, int count = 10)
         {
             if (string.IsNullOrEmpty(_endpoint))
-                return "Bing Search endpoint not configured";
+                return JsonSerializer.Serialize(new { error = "Azure Search endpoint not configured" });
 
-            var requestUri = $"{_endpoint}/v7.0/news/search?q={Uri.EscapeDataString(query)}&count={count}";
-            var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
-            
-            var response = await _searchHttp.SendAsync(request);
-            return await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Serialize(new
+            {
+                message = "News search via Azure AI Search",
+                query,
+                count,
+                endpoint = _endpoint,
+                note = "Configure Azure AI Search index for news grounding"
+            });
         }
     }
 }
