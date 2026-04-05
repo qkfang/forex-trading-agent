@@ -1,6 +1,7 @@
 using Azure.AI.Projects;
-using Azure.AI.Projects.Agents;
+using Azure.AI.Agents.Persistent;
 using Microsoft.Agents.AI.Foundry;
+using OpenAI.Responses;
 using System.Text.Json;
 
 namespace FxAgent.Agents;
@@ -10,78 +11,47 @@ public abstract class BaseAgent
     protected readonly FoundryAgent _agent;
     protected readonly AIProjectClient _aiProjectClient;
 
-    protected BaseAgent(AIProjectClient aiProjectClient, string agentId, string deploymentName, string instructions, params FunctionToolDefinition[] additionalTools)
+    protected BaseAgent(AIProjectClient aiProjectClient, string agentId, string deploymentName, string instructions)
     {
         _aiProjectClient = aiProjectClient;
         
-        var tools = McpToolDefinitions.GetAllToolDefinitions().ToList<FunctionToolDefinition>();
+        var tools = McpToolDefinitions.GetAllToolDefinitions()
+            .Select(t => new ResponseTool
+            {
+                Type = "function",
+                Function = new ResponseFunction
+                {
+                    Name = t.FunctionName,
+                    Description = t.FunctionName,
+                    Parameters = t.Parameters
+                }
+            })
+            .ToList();
         
-        if (additionalTools != null && additionalTools.Length > 0)
+        var agentDefinition = new DeclarativeAgentDefinition(model: deploymentName)
         {
-            tools.AddRange(additionalTools);
+            Instructions = instructions
+        };
+        
+        foreach (var tool in tools)
+        {
+            agentDefinition.Tools.Add(tool);
         }
         
         var agentVersion = aiProjectClient.AgentAdministrationClient.CreateAgentVersion(
             agentId,
-            new ProjectsAgentVersionCreationOptions(
-                new DeclarativeAgentDefinition(model: deploymentName)
-                {
-                    Instructions = instructions,
-                    Tools = tools
-                }));
+            new ProjectsAgentVersionCreationOptions(agentDefinition));
 
         _agent = aiProjectClient.AsAIAgent(agentVersion);
     }
 
     public async Task<string> RunAsync(string message)
     {
-        var threadId = Guid.NewGuid().ToString();
-        var thread = await _aiProjectClient.AgentThreadsClient.CreateThreadAsync();
+        var response = await _agent.InvokeAsync(message);
         
-        await _aiProjectClient.AgentThreadsClient.CreateMessageAsync(thread.Value.Id, MessageRole.User, message);
-        
-        var run = await _aiProjectClient.AgentThreadsClient.CreateRunAsync(
-            thread.Value.Id,
-            _agent.AgentId);
-
-        while (run.Value.Status == RunStatus.Queued || 
-               run.Value.Status == RunStatus.InProgress ||
-               run.Value.Status == RunStatus.RequiresAction)
+        if (response?.Messages?.LastOrDefault()?.Content is string content)
         {
-            await Task.Delay(500);
-            run = await _aiProjectClient.AgentThreadsClient.GetRunAsync(thread.Value.Id, run.Value.Id);
-
-            if (run.Value.Status == RunStatus.RequiresAction &&
-                run.Value.RequiredAction is SubmitToolOutputsAction toolAction)
-            {
-                var toolOutputs = new List<ToolOutput>();
-                
-                foreach (var toolCall in toolAction.ToolCalls)
-                {
-                    if (toolCall is RequiredFunctionToolCall funcCall)
-                    {
-                        var args = JsonDocument.Parse(funcCall.Arguments).RootElement;
-                        var output = await McpToolDefinitions.InvokeToolAsync(funcCall.Name, args);
-                        toolOutputs.Add(new ToolOutput(funcCall.Id, output));
-                    }
-                }
-
-                await _aiProjectClient.AgentThreadsClient.SubmitToolOutputsToRunAsync(
-                    thread.Value.Id,
-                    run.Value.Id,
-                    toolOutputs);
-            }
-        }
-
-        if (run.Value.Status == RunStatus.Completed)
-        {
-            var messages = await _aiProjectClient.AgentThreadsClient.GetMessagesAsync(thread.Value.Id);
-            var lastMessage = messages.Value.Data.FirstOrDefault(m => m.Role == MessageRole.Assistant);
-            
-            if (lastMessage?.ContentItems.FirstOrDefault() is MessageTextContent textContent)
-            {
-                return textContent.Text;
-            }
+            return content;
         }
 
         return "Agent run failed or produced no output.";
