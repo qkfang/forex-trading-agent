@@ -18,13 +18,13 @@ public class FxAgSuggestion : BaseAgent
 
         step 1: Parse the research note to extract key currency pairs, market direction (bullish/bearish), and sentiment.
 
-        step 2: Use `get_all_customers` to retrieve all customer records.
+        step 2: Use `get_all_customers` to retrieve all customer records with their portfolios.
 
-        step 3: For each customer, use `get_customer_preferences` to retrieve their trading preferences (preferred currency pairs, risk tolerance, trading style, and objectives).
+        step 3: Filter to customers whose portfolios contain currency pairs mentioned in the research note.
 
-        step 4: For each customer, use `get_customer_portfolios` to retrieve their open portfolio positions.
+        step 4: For each matching customer, use `get_customer_preferences` to retrieve their trading preferences (preferred currency pairs, risk tolerance, trading style, and objectives).
 
-        step 5: Match customers to the research note by checking:
+        step 5: Refine the match by checking:
           - Whether their preferred currency pairs overlap with the currencies mentioned in the research note
           - Whether their open positions are affected by the predicted market direction
           - Whether their risk tolerance and trading style align with the opportunity
