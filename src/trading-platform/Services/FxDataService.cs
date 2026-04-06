@@ -49,14 +49,26 @@ namespace FxWebUI.Services
             File.WriteAllText(transactionsPath, json);
         }
 
-        public List<Transaction> GetTransactions()
+        public List<Transaction> GetTransactions(string accountId)
         {
-            lock (_lock) return _transactions.OrderByDescending(t => t.DateTime).ToList();
+            lock (_lock)
+                return _transactions.Where(t => t.AccountId == accountId).OrderByDescending(t => t.DateTime).ToList();
         }
 
-        public FundSummary GetFundSummary()
+        public FundSummary GetFundSummary(string accountId)
         {
-            lock (_lock) return _fundSummary;
+            lock (_lock)
+            {
+                var txns = _transactions.Where(t => t.AccountId == accountId).ToList();
+                var summary = new FundSummary();
+                foreach (var t in txns)
+                {
+                    if (t.Type == "Buy") { summary.AudBalance += t.Amount; summary.UsdBalance -= t.Total; }
+                    else if (t.Type == "Sell") { summary.AudBalance -= t.Amount; summary.UsdBalance += t.Total; }
+                }
+                summary.TotalBalance = summary.AudBalance + summary.UsdBalance;
+                return summary;
+            }
         }
 
         /// <summary>Record an incoming settled trade from the Broker Back-Office.</summary>

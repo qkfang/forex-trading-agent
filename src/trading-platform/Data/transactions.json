@@ -1,6 +1,7 @@
 [
   {
     "Id": 1,
+    "AccountId": "ACC001",
     "Type": "Buy",
     "CurrencyPair": "AUD/USD",
     "Amount": 10000.00,
@@ -8,6 +9,167 @@
     "Total": 6550.00,
     "DateTime": "2024-01-15T10:30:00"
   },
+  {
+    "Id": 2,
+    "AccountId": "ACC002",
+    "Type": "Sell",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 5000.00,
+    "Rate": 0.6580,
+    "Total": 3290.00,
+    "DateTime": "2024-01-16T14:20:00"
+  },
+  {
+    "Id": 3,
+    "AccountId": "ACC001",
+    "Type": "Buy",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 15000.00,
+    "Rate": 0.6520,
+    "Total": 9780.00,
+    "DateTime": "2024-01-17T09:15:00"
+  },
+  {
+    "Id": 4,
+    "AccountId": "ACC002",
+    "Type": "Sell",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 8000.00,
+    "Rate": 0.6600,
+    "Total": 5280.00,
+    "DateTime": "2024-01-18T16:45:00"
+  },
+  {
+    "Id": 5,
+    "AccountId": "ACC001",
+    "Type": "Buy",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 12000.00,
+    "Rate": 0.6545,
+    "Total": 7854.00,
+    "DateTime": "2024-01-19T11:00:00"
+  },
+  {
+    "Id": 6,
+    "AccountId": "ACC002",
+    "Type": "Sell",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 10000.0,
+    "Rate": 0.6570,
+    "Total": 6570.00,
+    "DateTime": "2026-03-20T00:33:48Z"
+  },
+  {
+    "Id": 7,
+    "AccountId": "ACC001",
+    "Type": "Sell",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 10000.0,
+    "Rate": 0.6565,
+    "Total": 6565.00,
+    "DateTime": "2026-03-20T00:33:52Z"
+  },
+  {
+    "Id": 8,
+    "AccountId": "ACC002",
+    "Type": "Sell",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 10000.0,
+    "Rate": 0.6573,
+    "Total": 6573.00,
+    "DateTime": "2026-03-20T00:33:54Z"
+  },
+  {
+    "Id": 9,
+    "AccountId": "ACC001",
+    "Type": "Sell",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 10000.0,
+    "Rate": 0.6575,
+    "Total": 6575.00,
+    "DateTime": "2026-03-20T00:33:55Z"
+  },
+  {
+    "Id": 10,
+    "AccountId": "ACC002",
+    "Type": "Sell",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 10000.0,
+    "Rate": 0.6574,
+    "Total": 6574.00,
+    "DateTime": "2026-03-20T00:33:56Z"
+  },
+  {
+    "Id": 11,
+    "AccountId": "ACC001",
+    "Type": "Sell",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 10000.0,
+    "Rate": 0.6578,
+    "Total": 6578.00,
+    "DateTime": "2026-03-20T00:34:00Z"
+  },
+  {
+    "Id": 12,
+    "AccountId": "ACC002",
+    "Type": "Buy",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 10000.0,
+    "Rate": 0.6574,
+    "Total": 6574.00,
+    "DateTime": "2026-03-20T00:34:06Z"
+  },
+  {
+    "Id": 13,
+    "AccountId": "ACC001",
+    "Type": "Buy",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 10000.0,
+    "Rate": 0.6525,
+    "Total": 6525.00,
+    "DateTime": "2026-03-20T01:43:17Z"
+  },
+  {
+    "Id": 14,
+    "AccountId": "ACC002",
+    "Type": "Sell",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 10000.0,
+    "Rate": 0.6526,
+    "Total": 6526.00,
+    "DateTime": "2026-03-20T01:43:18Z"
+  },
+  {
+    "Id": 15,
+    "AccountId": "ACC001",
+    "Type": "Buy",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 10000.0,
+    "Rate": 0.6526,
+    "Total": 6526.00,
+    "DateTime": "2026-03-20T01:43:19Z"
+  },
+  {
+    "Id": 16,
+    "AccountId": "ACC002",
+    "Type": "Buy",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 10000.0,
+    "Rate": 0.6539,
+    "Total": 6539.00,
+    "DateTime": "2026-03-22T05:59:30Z"
+  },
+  {
+    "Id": 17,
+    "AccountId": "ACC001",
+    "Type": "Buy",
+    "CurrencyPair": "AUD/USD",
+    "Amount": 10000.0,
+    "Rate": 0.6516,
+    "Total": 6516.00,
+    "DateTime": "2026-03-22T05:59:44Z"
+  }
+]
   {
     "Id": 2,
     "Type": "Sell",
