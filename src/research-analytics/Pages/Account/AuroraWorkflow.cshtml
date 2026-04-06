@@ -1154,6 +1154,7 @@
     <script>
         const AURORA_API = '@Model.AuroraApiUrl';
         const AURORA_QUOTE = '@Model.AuroraQuoteUrl';
+        const FOUNDRY_AGENT = '@Model.FoundryAgentUrl';
 
         let quoteInterval = null;
         let currentPhase = 1;
@@ -1474,6 +1475,27 @@
                 tradeData.transactionId = 'AU-' + Date.now();
                 addLog(logs, 'success', `✓ Filled at ${tradeData.rate.toFixed(5)}`);
                 addLog(logs, 'success', `Transaction: ${tradeData.transactionId}`);
+            }
+
+            // Call fxag-trader agent to process the trade response
+            await sleep(500);
+            addLog(logs, 'info', 'Sending trade details to trading agent...');
+            try {
+                const agentMsg = `Trade executed: ${tradeData.action} ${tradeData.lots} lots ${tradeData.pair} at ${tradeData.rate.toFixed(5)}, transaction ${tradeData.transactionId}. Please retrieve the latest transaction history and fund summary to confirm.`;
+                const agentRes = await fetch(FOUNDRY_AGENT + '/trader', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: agentMsg })
+                });
+                if (!agentRes.ok) throw new Error(`Agent returned ${agentRes.status}`);
+                const agentData = await agentRes.json();
+                addLog(logs, 'success', '✓ Trading agent confirmed transaction');
+                if (agentData.response && typeof agentData.response === 'string') {
+                    tradeData.agentResponse = agentData.response;
+                    addLog(logs, 'info', 'Agent: ' + agentData.response.substring(0, 200));
+                }
+            } catch (agentErr) {
+                addLog(logs, 'warn', 'Trading agent unavailable — trade still recorded');
             }
 
             addLog(logs, 'success', 'Execution complete');
