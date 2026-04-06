@@ -12,6 +12,7 @@ namespace FxWebPortal.Pages.Account
         public string Signal { get; set; } = string.Empty;
         public string AuroraApiUrl { get; set; } = string.Empty;
         public string AuroraQuoteUrl { get; set; } = string.Empty;
+        public string FoundryAgentUrl { get; set; } = string.Empty;
 
         public AuroraWorkflowModel(IConfiguration configuration)
         {
@@ -27,6 +28,8 @@ namespace FxWebPortal.Pages.Account
             var brokerApiUrl = _configuration["BrokerCrmApiUrl"] ?? "http://localhost:5002";
             AuroraApiUrl = $"{brokerApiUrl}/api/aurora";
             AuroraQuoteUrl = $"{brokerApiUrl}/api/aurora/quote/audusd";
+
+            FoundryAgentUrl = _configuration["FoundryAgent:EndpointUrl"]?.TrimEnd('/') ?? "http://localhost:5001";
         }
     }
 }
