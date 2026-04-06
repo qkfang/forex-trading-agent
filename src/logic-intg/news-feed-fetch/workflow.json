@@ -90,8 +90,8 @@
             "inputs": {
               "parameters": {
                 "eventHubName": "@appsetting('EVENTHUB_NAME')",
-                "message": {
-                  "contentData": "@items('For_each_article')"
+                "eventData": {
+                  "ContentData": "@{base64(string(items('For_each_article')))}"
                 }
               },
               "serviceProviderConfiguration": {

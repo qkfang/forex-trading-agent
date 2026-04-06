@@ -12,7 +12,10 @@
     },
     "EventHub": {
       "parameterValues": {
-        "fullyQualifiedNamespace": "@appsetting('EVENTHUB_FULLY_QUALIFIED_NAMESPACE')"
+        "fullyQualifiedNamespace": "@appsetting('EVENTHUB_FULLY_QUALIFIED_NAMESPACE')",
+        "authProvider": {
+          "Type": "ManagedServiceIdentity"
+        }
       },
       "serviceProvider": {
         "id": "/serviceProviders/eventHub"
