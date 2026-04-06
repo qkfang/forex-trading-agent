@@ -42,5 +42,5 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: fxag-logic
-          resource-group-name: rg-melt
+          resource-group-name: rg-fx-agent
           package: dist/logic-intg.zip
