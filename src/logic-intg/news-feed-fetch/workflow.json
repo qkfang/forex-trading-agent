@@ -16,7 +16,7 @@
         "type": "Http",
         "inputs": {
           "method": "GET",
-          "uri": "@{concat(appsetting('NEWS_FEED_API_URL'), '/api/news?source=FX News Centre')}"
+          "uri": "@{concat(appsetting('NEWS_FEED_API_URL'), '/api/news?source=FX News Centre&from=', formatDateTime(addMinutes(utcNow(), -15), 'yyyy-MM-ddTHH:mm:ssZ'))}"
         },
         "runAfter": {}
       },
@@ -48,19 +48,9 @@
           "Fetch_News_Articles": [ "Succeeded" ]
         }
       },
-      "Filter_Recent_Articles": {
-        "type": "Query",
-        "inputs": {
-          "from": "@body('Parse_Articles')",
-          "where": "@greaterOrEquals(item()?['publishedAt'], formatDateTime(addMinutes(utcNow(), -2), 'yyyy-MM-ddTHH:mm:ssZ'))"
-        },
-        "runAfter": {
-          "Parse_Articles": [ "Succeeded" ]
-        }
-      },
       "For_each_article": {
         "type": "Foreach",
-        "foreach": "@body('Filter_Recent_Articles')",
+        "foreach": "@body('Parse_Articles')",
         "actions": {
           "Check_Blob_Exists": {
             "type": "ServiceProvider",
@@ -116,7 +106,7 @@
           }
         },
         "runAfter": {
-          "Filter_Recent_Articles": [ "Succeeded" ]
+          "Parse_Articles": [ "Succeeded" ]
         }
       }
     },
