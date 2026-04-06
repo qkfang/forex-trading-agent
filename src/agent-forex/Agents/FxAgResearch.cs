@@ -1,15 +1,12 @@
 using Azure.AI.Projects;
-using Azure.Identity;
-using Microsoft.Agents.AI;
-using Microsoft.Agents.AI.Foundry;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using OpenAI.Responses;
 
 namespace FxAgent.Agents;
 
 public class FxAgResearch : BaseAgent
 {
-    public FxAgResearch(AIProjectClient aiProjectClient, string deploymentName, IList<AITool>? tools = null, ILogger? logger = null)
+    public FxAgResearch(AIProjectClient aiProjectClient, string deploymentName, IList<ResponseTool>? tools = null, ILogger? logger = null)
         : base(aiProjectClient, "fxag-research", deploymentName, GetInstructions(), tools, logger)
     {
     }
