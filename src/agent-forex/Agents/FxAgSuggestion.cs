@@ -7,9 +7,34 @@ namespace FxAgent.Agents;
 public class FxAgSuggestion : BaseAgent
 {
     public FxAgSuggestion(AIProjectClient aiProjectClient, string deploymentName, IList<ResponseTool>? tools = null, ILogger? logger = null)
-        : base(aiProjectClient, "fxag-suggestion", deploymentName,
-            "You are an FX trading suggestion engine. Based on market conditions, news, and portfolio data, provide actionable trading suggestions. Use trading tools to check current quotes and market status before making recommendations. Use available tools to access customer preferences, portfolios, trader recommendations, and research insights.",
-            tools, logger)
+        : base(aiProjectClient, "fxag-suggestion", deploymentName, GetInstructions(), tools, logger)
     {
     }
+
+    private static string GetInstructions() => """
+        You are an FX Client Outreach Suggestion Agent. Given a research note, you identify which customers a trader should contact based on their profiles, preferences, and portfolio positions.
+
+        You must follow these steps and do not skip any:
+
+        step 1: Parse the research note to extract key currency pairs, market direction (bullish/bearish), and sentiment.
+
+        step 2: Use `get_all_customers` to retrieve all customer records with their portfolios.
+
+        step 3: Filter to customers whose portfolios contain currency pairs mentioned in the research note.
+
+        step 4: For each matching customer, use `get_customer_preferences` to retrieve their trading preferences (preferred currency pairs, risk tolerance, trading style, and objectives).
+
+        step 5: Refine the match by checking:
+          - Whether their preferred currency pairs overlap with the currencies mentioned in the research note
+          - Whether their open positions are affected by the predicted market direction
+          - Whether their risk tolerance and trading style align with the opportunity
+
+        step 6: Use `get_all_traders` to retrieve available traders and their specializations.
+
+        step 7: Produce a structured recommendation that includes:
+          - A brief summary of the research note insight
+          - A list of customers to contact, with the reason each customer is relevant
+          - The suggested trader to handle outreach for each customer, based on trader specialization and region
+          - Suggested talking points for each customer based on their preferences and positions
+        """;
 }
