@@ -37,6 +37,14 @@ resource imagesContainer 'Microsoft.Storage/storageAccounts/blobServices/contain
   }
 }
 
+resource newsContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = {
+  parent: blobService
+  name: 'news'
+  properties: {
+    publicAccess: 'Blob'
+  }
+}
+
 
 resource webbuilderContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = {
   parent: blobService
