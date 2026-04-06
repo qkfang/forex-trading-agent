@@ -45,13 +45,13 @@ var tradingMcpUrl = app.Configuration["TRADING_PLATFORM_MCP_URL"];
 var apiIntgTool = ResponseTool.CreateMcpTool(
     serverLabel: "api-intg",
     serverUri: new Uri($"{apiMcpUrl}/mcp"),
-    toolCallApprovalPolicy: new McpToolCallApprovalPolicy(GlobalMcpToolCallApprovalPolicy.AlwaysRequireApproval)
+    toolCallApprovalPolicy: new McpToolCallApprovalPolicy(GlobalMcpToolCallApprovalPolicy.NeverRequireApproval)
 );
 
 var tradingTool = ResponseTool.CreateMcpTool(
     serverLabel: "trading-platform",
     serverUri: new Uri($"{tradingMcpUrl}/mcp"),
-    toolCallApprovalPolicy: new McpToolCallApprovalPolicy(GlobalMcpToolCallApprovalPolicy.AlwaysRequireApproval)
+    toolCallApprovalPolicy: new McpToolCallApprovalPolicy(GlobalMcpToolCallApprovalPolicy.NeverRequireApproval)
 );
 
 var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();

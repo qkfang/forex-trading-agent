@@ -10,7 +10,7 @@ var projectEndpoint = Environment.GetEnvironmentVariable("FOUNDRY_PROJECT_ENDPOI
 
 var modelDeploymentName = Environment.GetEnvironmentVariable("FOUNDRY_MODEL_NAME")
     ?? Environment.GetEnvironmentVariable("AZURE_AI_MODEL_DEPLOYMENT_NAME")
-    ?? "gpt-4.1";
+    ?? "gpt-5.4";
 
 AIProjectClient projectClient = new(endpoint: new Uri(projectEndpoint), tokenProvider: new AzureCliCredential());
 

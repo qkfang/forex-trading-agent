@@ -15,7 +15,7 @@ using ModelContextProtocol.Client;
 var endpoint        = Environment.GetEnvironmentVariable("AZURE_AI_PROJECT_ENDPOINT")
                       ?? "https://fxag-foundry.services.ai.azure.com/api/projects/fxag-foundry-project";
 var deploymentName  = Environment.GetEnvironmentVariable("AZURE_AI_MODEL_DEPLOYMENT_NAME")
-                      ?? "gpt-4.1";
+                      ?? "gpt-5.4";
 var apiIntgMcpUrl   = Environment.GetEnvironmentVariable("API_INTG_MCP_URL")
                       ?? "http://localhost:5005";
 var appInsightsConnectionString =

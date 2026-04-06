@@ -66,6 +66,7 @@ public abstract class BaseAgent
             {
                 if (item is McpToolCallApprovalRequestItem mcpCall)
                 {
+                    _logger.LogInformation("Auto-approving MCP tool call on {ServerLabel}", mcpCall.ServerLabel);
                     nextOptions ??= new CreateResponseOptions { PreviousResponseId = result.Id };
                     nextOptions.InputItems.Add(ResponseItem.CreateMcpApprovalResponseItem(mcpCall.Id, approved: true));
                 }
