@@ -142,7 +142,7 @@ module crmBrokerApp 'modules/webapp.bicep' = {
     location: location
     appServicePlanId: appServicePlan.id
     appInsightsConnectionString: appInsights.outputs.connectionString
-    appCommandLine: 'dotnet /home/site/wwwroot/FxWebApi.dll'
+    appCommandLine: 'dotnet FxWebApi.dll'
     extraAppSettings: [
       { name: 'AzureAIFoundry__Endpoint', value: azureAIFoundryEndpoint }
       { name: 'AzureAIFoundry__Deployment', value: azureAIFoundryDeployment }
@@ -161,7 +161,7 @@ module fxAgentApp 'modules/webapp.bicep' = {
     location: location
     appServicePlanId: appServicePlan.id
     appInsightsConnectionString: appInsights.outputs.connectionString
-    appCommandLine: 'dotnet /home/site/wwwroot/FxAgent.dll'
+    appCommandLine: 'dotnet FxAgent.dll'
     extraAppSettings: [
       { name: 'AZURE_AI_PROJECT_ENDPOINT', value: azureAIFoundryEndpoint }
       { name: 'MODEL_DEPLOYMENT_NAME', value: azureAIFoundryDeployment }
@@ -177,7 +177,7 @@ module newsFeedApp 'modules/webapp.bicep' = {
     location: location
     appServicePlanId: appServicePlan.id
     appInsightsConnectionString: appInsights.outputs.connectionString
-    appCommandLine: 'dotnet /home/site/wwwroot/FxWebNews.dll'
+    appCommandLine: 'dotnet FxWebNews.dll'
     extraAppSettings: [
       { name: 'NewsPublish__EndpointUrl', value: 'https://${baseName}-research.azurewebsites.net/api/articles/receive' }
     ]
@@ -191,7 +191,7 @@ module researchAnalyticsApp 'modules/webapp.bicep' = {
     location: location
     appServicePlanId: appServicePlan.id
     appInsightsConnectionString: appInsights.outputs.connectionString
-    appCommandLine: 'dotnet /home/site/wwwroot/FxWebPortal.dll'
+    appCommandLine: 'dotnet FxWebPortal.dll'
     extraAppSettings: [
       { name: 'IntegrationApi__BaseUrl', value: 'https://${baseName}-intg.azurewebsites.net' }
       { name: 'BrokerNotification__EndpointUrl', value: 'https://${baseName}-broker.azurewebsites.net/api/accounts/leads' }
@@ -208,7 +208,7 @@ module apiIntegrationApp 'modules/webapp.bicep' = {
     location: location
     appServicePlanId: appServicePlan.id
     appInsightsConnectionString: appInsights.outputs.connectionString
-    appCommandLine: 'dotnet /home/site/wwwroot/FxIntegrationApi.dll'
+    appCommandLine: 'dotnet FxIntegrationApi.dll'
     extraAppSettings: [
       { name: 'ConnectionStrings__FxDatabase', value: fabricDatabaseConnectionString }
     ]
@@ -220,7 +220,7 @@ module tradingPlatformApp 'modules/webapp.bicep' = {
   params: {
     name: '${baseName}-trading'
     location: location
-    appCommandLine: 'dotnet /home/site/wwwroot/FxWebUI.dll'
+    appCommandLine: 'dotnet FxWebUI.dll'
     extraAppSettings: [
       { name: 'FX_API_URL', value: 'https://${baseName}-broker.azurewebsites.net' }
     ]
