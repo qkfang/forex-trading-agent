@@ -14,6 +14,11 @@ public abstract class BaseAgent
     protected readonly string _agentId;
 
     protected BaseAgent(AIProjectClient aiProjectClient, string agentId, string deploymentName, string instructions, IList<ResponseTool>? tools = null, ILogger? logger = null)
+        : this(aiProjectClient, agentId, deploymentName, instructions, tools, null, logger)
+    {
+    }
+
+    protected BaseAgent(AIProjectClient aiProjectClient, string agentId, string deploymentName, string instructions, IList<ResponseTool>? tools = null, Action<DeclarativeAgentDefinition>? configureAgent = null, ILogger? logger = null)
     {
         _agentId = agentId;
         _logger = logger ?? LoggerFactory.Create(b => b.AddConsole()).CreateLogger(agentId);
@@ -31,6 +36,8 @@ public abstract class BaseAgent
                     agentDefinition.Tools.Add(tool);
             }
         }
+
+        configureAgent?.Invoke(agentDefinition);
 
         var agentVersion = aiProjectClient.AgentAdministrationClient.CreateAgentVersion(
             agentId,

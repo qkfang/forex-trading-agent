@@ -3,9 +3,6 @@ param location string
 param tags object = {}
 param webAppPrincipalId string = ''
 param principals array = []
-param bingSearchName string = ''
-param bingSearchKey string = ''
-
 
 resource aiHub 'Microsoft.CognitiveServices/accounts@2025-10-01-preview' = {
   name: name
@@ -122,22 +119,9 @@ resource userAIUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-
   }
 }]
 
-resource bingConnection 'Microsoft.CognitiveServices/accounts/projects/connections@2025-06-01' = if (!empty(bingSearchName)) {
-  parent: aiProject
-  name: 'bing-search-connection'
-  properties: {
-    category: 'BingGrounding'
-    authType: 'ApiKey'
-    credentials: {
-      key: bingSearchKey
-    }
-    target: 'https://api.bing.microsoft.com/v7.0/search'
-  }
-}
 
 output accountName string = aiHub.name
 output endpoint string = aiHub.properties.endpoint
 output deploymentName string = gpt4oDeployment.name
 output projectName string = aiProject.name
 output location string = location
-output bingConnectionName string = !empty(bingSearchName) ? bingConnection.name : ''

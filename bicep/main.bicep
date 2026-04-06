@@ -28,15 +28,6 @@ var staticWebAppName = '${baseName}-swa'
 var foundryName = '${baseName}-foundry'
 var fabricCapacityName = '${baseName}fabric'
 var logicIntgName = '${baseName}-logic'
-var bingSearchName = '${baseName}-bing'
-
-module bingSearch 'modules/bing-search.bicep' = {
-  name: 'bingSearchDeployment'
-  params: {
-    name: bingSearchName
-    tags: commonTags
-  }
-}
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   name: webAppPlanName
@@ -116,8 +107,6 @@ module azureFoundry 'modules/foundry.bicep' = {
     tags: commonTags
     webAppPrincipalId: crmBrokerApp.outputs.principalId
     principals: principals
-    bingSearchName: bingSearch.outputs.name
-    bingSearchKey: bingSearch.outputs.key
   }
 }
 
@@ -177,7 +166,6 @@ module fxAgentApp 'modules/webapp.bicep' = {
     appInsightsConnectionString: appInsights.outputs.connectionString
     appCommandLine: 'dotnet FxAgent.dll'
     extraAppSettings: [
-      { name: 'BING_CONNECTION_NAME', value: azureFoundry.outputs.bingConnectionName }
       { name: 'AZURE_AI_PROJECT_ENDPOINT', value: azureAIFoundryEndpoint }
       { name: 'AZURE_AI_MODEL_DEPLOYMENT_NAME', value: azureAIFoundryDeployment }
       { name: 'CRM_BROKER_URL', value: 'https://${baseName}-broker.azurewebsites.net' }
