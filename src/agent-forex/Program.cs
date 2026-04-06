@@ -35,6 +35,7 @@ var endpoint = app.Configuration["AZURE_AI_PROJECT_ENDPOINT"]
     ?? throw new InvalidOperationException("AZURE_AI_PROJECT_ENDPOINT is not set.");
 var deploymentName = app.Configuration["AZURE_AI_MODEL_DEPLOYMENT_NAME"]
     ?? throw new InvalidOperationException("AZURE_AI_MODEL_DEPLOYMENT_NAME is not set.");
+var bingConnectionName = app.Configuration["BING_CONNECTION_NAME"];
 
 AIProjectClient aiProjectClient = new(new Uri(endpoint), new AzureCliCredential());
 
@@ -55,7 +56,28 @@ var tradingTool = ResponseTool.CreateMcpTool(
 
 var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
 
-var researchAgent = new FxAgResearch(aiProjectClient, deploymentName, [apiIntgTool], loggerFactory.CreateLogger<FxAgResearch>());
+ResponseTool? bingTool = null;
+if (!string.IsNullOrEmpty(bingConnectionName))
+{
+    try
+    {
+        var bingConnection = aiProjectClient.Connections.GetConnection(connectionName: bingConnectionName);
+        bingTool = ResponseTool.CreateBingGroundingTool(new BingGroundingSearchToolOptions(
+            searchConfigurations: [new BingGroundingSearchConfiguration(projectConnectionId: bingConnection.Id)]
+        ));
+        logger.LogInformation("Bing grounding tool enabled for research agent");
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "Failed to configure Bing grounding tool");
+    }
+}
+
+var researchTools = new List<ResponseTool> { apiIntgTool };
+if (bingTool != null)
+    researchTools.Add(bingTool);
+
+var researchAgent = new FxAgResearch(aiProjectClient, deploymentName, researchTools, loggerFactory.CreateLogger<FxAgResearch>());
 var suggestionAgent = new FxAgSuggestion(aiProjectClient, deploymentName, [apiIntgTool], loggerFactory.CreateLogger<FxAgSuggestion>());
 var insightAgent = new FxAgInsight(aiProjectClient, deploymentName, [apiIntgTool], loggerFactory.CreateLogger<FxAgInsight>());
 var traderAgent = new FxAgTrader(aiProjectClient, deploymentName, [tradingTool], loggerFactory.CreateLogger<FxAgTrader>());

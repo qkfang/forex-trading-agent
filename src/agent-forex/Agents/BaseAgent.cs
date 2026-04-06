@@ -26,7 +26,10 @@ public abstract class BaseAgent
         if (tools != null)
         {
             foreach (var tool in tools)
-                agentDefinition.Tools.Add(tool);
+            {
+                if (tool != null)
+                    agentDefinition.Tools.Add(tool);
+            }
         }
 
         var agentVersion = aiProjectClient.AgentAdministrationClient.CreateAgentVersion(
