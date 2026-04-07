@@ -1037,6 +1037,7 @@
         const AURORA_API = '@Model.AuroraApiUrl';
         const AURORA_QUOTE = '@Model.AuroraQuoteUrl';
         const FOUNDRY_AGENT = '@Model.FoundryAgentUrl';
+        const TRADING_PLATFORM = '@Model.TradingPlatformUrl';
 
         let quoteInterval = null;
         let currentPhase = 1;
@@ -1362,18 +1363,32 @@
             await sleep(500);
             addLog(logs, 'info', 'Sending trade details to trading agent...');
             try {
-                const agentMsg = `Trade executed: ${tradeData.action} ${tradeData.lots} lots ${tradeData.pair} at ${tradeData.rate.toFixed(5)}, transaction ${tradeData.transactionId}. Please retrieve the latest transaction history and fund summary to confirm.`;
-                const agentRes = await fetch(FOUNDRY_AGENT + '/trader', {
+                const tradeDetail = {
+                    action: tradeData.action,
+                    lots: tradeData.lots,
+                    pair: tradeData.pair,
+                    rate: parseFloat(tradeData.rate.toFixed(5)),
+                    transactionId: tradeData.transactionId
+                };
+
+                const analysisRequest = `Trade executed: ${tradeData.action} ${tradeData.lots} lots ${tradeData.pair} at ${tradeData.rate.toFixed(5)}, transaction ${tradeData.transactionId}. Please retrieve the latest transaction history and fund summary to confirm.\n\n${JSON.stringify(tradeDetail, null, 2)}`;
+
+                const nextOptions = { message: analysisRequest };
+
+                const agentRes = await fetch('/api/agent/trader', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: agentMsg })
+                    body: JSON.stringify(nextOptions)
                 });
                 if (!agentRes.ok) throw new Error(`Agent returned ${agentRes.status}`);
-                const agentData = await agentRes.json();
+
+                const result = await agentRes.json();
+                const outputText = result.response;
+
                 addLog(logs, 'success', '✓ Trading agent confirmed transaction');
-                if (agentData.response && typeof agentData.response === 'string') {
-                    tradeData.agentResponse = agentData.response;
-                    addLog(logs, 'info', 'Agent: ' + agentData.response.substring(0, 200));
+                if (outputText && typeof outputText === 'string') {
+                    tradeData.agentResponse = outputText;
+                    addLog(logs, 'info', 'Agent: ' + outputText.substring(0, 200));
                 }
             } catch (agentErr) {
                 addLog(logs, 'warn', 'Trading agent unavailable — trade still recorded');

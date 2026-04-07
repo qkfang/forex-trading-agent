@@ -116,6 +116,47 @@ app.MapPost("/api/articles/receive", (NewsIntakeRequest req, ArticleService arti
     return Results.Ok(new { received = true, articleId = created.Id, title = created.Title });
 });
 
+app.MapPost("/api/agent/trader", async (HttpContext ctx, IConfiguration config) =>
+{
+    using var reader = new StreamReader(ctx.Request.Body);
+    var body = await reader.ReadToEndAsync();
+
+    var projectEndpoint = config["FoundryAgent:ProjectEndpoint"]
+        ?? "https://fxag-foundry.services.ai.azure.com/api/projects/fxag-foundry-project";
+
+    var projectClient = new Azure.AI.Projects.AIProjectClient(
+        new Uri(projectEndpoint), new Azure.Identity.DefaultAzureCredential());
+
+    var responseClient = projectClient.ProjectOpenAIClient
+        .GetProjectResponsesClientForAgent("fxag-trader");
+
+    var nextOptions = new OpenAI.Responses.CreateResponseOptions
+    {
+        InputItems = { OpenAI.Responses.ResponseItem.CreateUserMessageItem(body) }
+    };
+
+    OpenAI.Responses.ResponseResult? result = null;
+
+    while (nextOptions is not null)
+    {
+        result = await responseClient.CreateResponseAsync(nextOptions);
+        nextOptions = null;
+
+        foreach (var item in result.OutputItems)
+        {
+            if (item is OpenAI.Responses.McpToolCallApprovalRequestItem mcpCall)
+            {
+                nextOptions ??= new OpenAI.Responses.CreateResponseOptions
+                    { PreviousResponseId = result.Id };
+                nextOptions.InputItems.Add(
+                    OpenAI.Responses.ResponseItem.CreateMcpApprovalResponseItem(mcpCall.Id, approved: true));
+            }
+        }
+    }
+
+    return Results.Content(result?.GetOutputText() ?? string.Empty, "text/plain");
+});
+
 app.MapRazorPages();
 
 // API: ChatKit protocol endpoint (openai/chatkit-js self-hosted backend)
