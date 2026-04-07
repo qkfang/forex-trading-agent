@@ -39,6 +39,14 @@ app.UseRouting();
 
 app.UseAuthorization();
 
+// Aurora quote feed – returns bid/ask for the requested pair
+app.MapGet("/api/quote/{pair}", async (string pair, FxDataService fxData) =>
+{
+    var fx = await fxData.GetCurrentFxRate();
+    var mid = fx?.Rate ?? 0.6550m;
+    return Results.Ok(new { bid = mid - 0.0002m, ask = mid + 0.0002m, pair, timestamp = DateTime.UtcNow });
+});
+
 // Receive a settled trade from Broker Back-Office
 app.MapPost("/api/trades", (Transaction transaction, FxDataService fxData) =>
 {

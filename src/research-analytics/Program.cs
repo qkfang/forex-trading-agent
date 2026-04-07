@@ -2,6 +2,10 @@ using FxWebPortal.Models;
 using FxWebPortal.Services;
 using System.Text;
 using System.Text.Json;
+using Azure.AI.Extensions.OpenAI;
+using Azure.AI.Projects;
+using Azure.Identity;
+using OpenAI.Responses;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,7 +50,7 @@ app.MapPost("/api/track", async (TrackingRequest req, HttpContext ctx, TrackingS
     // Notify broker when a customer with an email reads an article
     if (!string.IsNullOrWhiteSpace(req.UserEmail) && req.ArticleId.HasValue)
     {
-        var brokerUrl = config["BrokerNotification:EndpointUrl"];
+        var brokerUrl = config["CrmBrokerApi:EndpointUrl"];
         if (!string.IsNullOrWhiteSpace(brokerUrl))
         {
             var article = articles.GetById(req.ArticleId.Value);
@@ -125,7 +129,7 @@ app.MapPost("/api/agent/trader", async (HttpContext ctx, IConfiguration config) 
         ?? "https://fxag-foundry.services.ai.azure.com/api/projects/fxag-foundry-project";
 
     var projectClient = new Azure.AI.Projects.AIProjectClient(
-        new Uri(projectEndpoint), new Azure.Identity.DefaultAzureCredential());
+        new Uri(projectEndpoint), new DefaultAzureCredential());
 
     var responseClient = projectClient.ProjectOpenAIClient
         .GetProjectResponsesClientForAgent("fxag-trader");

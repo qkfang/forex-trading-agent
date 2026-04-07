@@ -1034,10 +1034,8 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script>
-        const AURORA_API = '@Model.AuroraApiUrl';
         const AURORA_QUOTE = '@Model.AuroraQuoteUrl';
         const FOUNDRY_AGENT = '@Model.FoundryAgentUrl';
-        const TRADING_PLATFORM = '@Model.TradingPlatformUrl';
 
         let quoteInterval = null;
         let currentPhase = 1;
@@ -1332,58 +1330,20 @@
             addLog(logs, 'info', 'Order routed to liquidity provider...');
             await sleep(1300);
 
-            try {
-                const res = await fetch(AURORA_API + '/trade', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        direction: tradeData.action,
-                        currencyPair: tradeData.pair,
-                        lots: tradeData.lots,
-                        accountId: 1,
-                        customerName: tradeData.customer
-                    })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    tradeData.transactionId = data.transactionId;
-                    tradeData.rate = data.rate || tradeData.rate;
-                    addLog(logs, 'success', `✓ Filled at ${tradeData.rate.toFixed(5)}`);
-                    addLog(logs, 'success', `Transaction: ${data.transactionId}`);
-                } else {
-                    addLog(logs, 'warn', `✗ ${data.message}`);
-                }
-            } catch {
-                tradeData.transactionId = 'AU-' + Date.now();
-                addLog(logs, 'success', `✓ Filled at ${tradeData.rate.toFixed(5)}`);
-                addLog(logs, 'success', `Transaction: ${tradeData.transactionId}`);
-            }
-
             // Call fxag-trader agent to process the trade response
             await sleep(500);
             addLog(logs, 'info', 'Sending trade details to trading agent...');
             try {
-                const tradeDetail = {
-                    action: tradeData.action,
-                    lots: tradeData.lots,
-                    pair: tradeData.pair,
-                    rate: parseFloat(tradeData.rate.toFixed(5)),
-                    transactionId: tradeData.transactionId
-                };
-
-                const analysisRequest = `Trade executed: ${tradeData.action} ${tradeData.lots} lots ${tradeData.pair} at ${tradeData.rate.toFixed(5)}, transaction ${tradeData.transactionId}. Please retrieve the latest transaction history and fund summary to confirm.\n\n${JSON.stringify(tradeDetail, null, 2)}`;
-
-                const nextOptions = { message: analysisRequest };
+                const tradePrompt = `Process trade: ${tradeData.action} ${tradeData.lots} lots ${tradeData.pair} at ${tradeData.rate.toFixed(5)}, transaction ${tradeData.transactionId}`;
 
                 const agentRes = await fetch('/api/agent/trader', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(nextOptions)
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: tradePrompt
                 });
                 if (!agentRes.ok) throw new Error(`Agent returned ${agentRes.status}`);
 
-                const result = await agentRes.json();
-                const outputText = result.response;
+                const outputText = await agentRes.text();
 
                 addLog(logs, 'success', '✓ Trading agent confirmed transaction');
                 if (outputText && typeof outputText === 'string') {

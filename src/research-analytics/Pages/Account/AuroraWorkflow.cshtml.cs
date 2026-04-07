@@ -10,7 +10,6 @@ namespace FxWebPortal.Pages.Account
         public string CustomerName { get; set; } = string.Empty;
         public string CurrencyPair { get; set; } = string.Empty;
         public string Signal { get; set; } = string.Empty;
-        public string AuroraApiUrl { get; set; } = string.Empty;
         public string AuroraQuoteUrl { get; set; } = string.Empty;
         public string FoundryAgentUrl { get; set; } = string.Empty;
 
@@ -25,9 +24,8 @@ namespace FxWebPortal.Pages.Account
             CurrencyPair = pair ?? "AUD/USD";
             Signal = signal ?? "Buy";
 
-            var brokerApiUrl = _configuration["BrokerCrmApiUrl"] ?? "http://localhost:5002";
-            AuroraApiUrl = $"{brokerApiUrl}/api/aurora";
-            AuroraQuoteUrl = $"{brokerApiUrl}/api/aurora/quote/audusd";
+            var tradingPlatformUrl = _configuration["TradingPlatformUrl"] ?? "http://localhost:5249";
+            AuroraQuoteUrl = $"{tradingPlatformUrl}/api/quote/audusd";
 
             FoundryAgentUrl = _configuration["FoundryAgent:EndpointUrl"]?.TrimEnd('/') ?? "http://localhost:5001";
         }

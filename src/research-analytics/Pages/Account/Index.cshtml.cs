@@ -30,7 +30,6 @@ public class IndexModel : PageModel
     public string DisplayName { get; set; } = string.Empty;
     public List<string> Interests { get; set; } = new();
     public string Message { get; set; } = string.Empty;
-    public string AuroraApiUrl { get; set; } = string.Empty;
     public string AuroraQuoteUrl { get; set; } = string.Empty;
 
     private IActionResult? RequireUser()
@@ -61,7 +60,7 @@ public class IndexModel : PageModel
             return Page();
         }
 
-        var brokerUrl = _configuration["BrokerNotification:EndpointUrl"];
+        var brokerUrl = _configuration["CrmBrokerApi:EndpointUrl"];
         if (!string.IsNullOrWhiteSpace(brokerUrl))
         {
             try
@@ -111,8 +110,8 @@ public class IndexModel : PageModel
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .ToList();
 
-        AuroraApiUrl   = _configuration["Aurora:ApiUrl"]   ?? "http://localhost:5269/api/aurora";
-        AuroraQuoteUrl = _configuration["Aurora:QuoteUrl"] ?? "http://localhost:5269/api/fx/quote";
+        var tradingPlatformUrl = _configuration["TradingPlatformUrl"] ?? "http://localhost:5249";
+        AuroraQuoteUrl = $"{tradingPlatformUrl}/api/quoto";
 
         // Market Insights: published articles filtered by user interests
         var allPublished = _articles.GetPublished();

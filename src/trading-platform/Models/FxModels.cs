@@ -26,4 +26,13 @@ namespace FxWebUI.Models
         public decimal UsdBalance { get; set; }
         public decimal TotalProfitLoss { get; set; }
     }
+
+    public class AuroraTradeRequest
+    {
+        public string Direction { get; set; } = string.Empty;
+        public string CurrencyPair { get; set; } = string.Empty;
+        public decimal Lots { get; set; }
+        public int AccountId { get; set; }
+        public string CustomerName { get; set; } = string.Empty;
+    }
 }

@@ -201,7 +201,7 @@ module researchAnalyticsApp 'modules/webapp.bicep' = {
     appCommandLine: 'dotnet FxWebPortal.dll'
     extraAppSettings: [
       { name: 'IntegrationApi__BaseUrl', value: 'https://${baseName}-intg.azurewebsites.net' }
-      { name: 'BrokerNotification__EndpointUrl', value: 'https://${baseName}-broker.azurewebsites.net/api/accounts/leads' }
+      { name: 'CrmBrokerApi__EndpointUrl', value: 'https://${baseName}-broker.azurewebsites.net/api/accounts/leads' }
       { name: 'Aurora__ApiUrl', value: 'https://${baseName}-broker.azurewebsites.net/api/aurora' }
       { name: 'Aurora__QuoteUrl', value: 'https://${baseName}-broker.azurewebsites.net/api/fx/quote' }
     ]

@@ -92,7 +92,7 @@ public class IndexModel : PageModel
             return Page();
         }
 
-        var brokerUrl = _configuration["BrokerNotification:EndpointUrl"];
+        var brokerUrl = _configuration["CrmBrokerApi:EndpointUrl"];
         if (!string.IsNullOrWhiteSpace(brokerUrl))
         {
             try
@@ -118,12 +118,12 @@ public class IndexModel : PageModel
             }
             catch (Exception ex)
             {
-                Message = $"Failed to reach broker CRM: {ex.Message}. Check the BrokerNotification:EndpointUrl configuration.";
+                Message = $"Failed to reach broker CRM: {ex.Message}. Check the CrmBrokerApi:EndpointUrl configuration.";
             }
         }
         else
         {
-            Message = "Broker notification URL is not configured (BrokerNotification:EndpointUrl).";
+            Message = "Broker notification URL is not configured (CrmBrokerApi:EndpointUrl).";
         }
 
         LoadData();

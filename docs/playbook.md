@@ -254,6 +254,6 @@ The FX Agent (port 8000) can run the full scenario autonomously using AI:
 | Issue | Resolution |
 |-------|-----------|
 | Research note not created after publish | Check `NewsPublish:EndpointUrl` in `news-feed/appsettings.Development.json` points to `http://localhost:5003/api/articles/receive` |
-| Broker lead not received | Check `BrokerNotification:EndpointUrl` in `research-analytics/appsettings.json` points to `http://localhost:5269/api/accounts/leads` |
+| Broker lead not received | Check `CrmBrokerApi:EndpointUrl` in `research-analytics/appsettings.json` points to `http://localhost:5269/api/accounts/leads` |
 | Trade not appearing on Trading Platform | Check `TradingPlatformUrl` in `crm-broker/appsettings.json` points to `http://localhost:5249` |
 | FX Agent workflow fails | Ensure all .NET services are running; AI features require `AZURE_AI_CONNECTION_STRING` in `src/fx-agent/.env` |
