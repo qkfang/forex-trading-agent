@@ -307,6 +307,7 @@ module researchAnalyticsApp 'modules/webapp.bicep' = {
       { name: 'FoundryAgent__EndpointUrl', value: 'https://${baseName}-agent.azurewebsites.net' }
       { name: 'Aurora__ApiUrl', value: 'https://${baseName}-broker.azurewebsites.net/api/aurora' }
       { name: 'Aurora__QuoteUrl', value: 'https://${baseName}-broker.azurewebsites.net/api/fx/quote' }
+      { name: 'AZURE_TENANT_ID', value: azureAIFoundryTenantId }
     ]
   }
 }
