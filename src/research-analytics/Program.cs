@@ -172,6 +172,54 @@ app.MapPost("/api/agent/trader", async (HttpContext ctx, IConfiguration config) 
 
 app.MapRazorPages();
 
+// API: Publish a research draft → create article, delete draft, invoke agent
+app.MapPost("/api/admin/publish-draft/{id}", async (int id, DraftService drafts, ArticleService articles,
+    IHttpClientFactory httpClientFactory, IConfiguration config) =>
+{
+    var draft = drafts.GetById(id);
+    if (draft == null)
+        return Results.NotFound(new { step = "load", error = "Draft not found." });
+
+    var article = new ResearchArticle
+    {
+        Title = draft.Title,
+        Content = draft.Content,
+        Author = draft.Author,
+        Category = draft.Category,
+        Tags = draft.Tags,
+        Status = "Published",
+        PublishedDate = DateTime.UtcNow,
+        Sentiment = "Neutral"
+    };
+
+    var created = articles.Add(article);
+    if (created.Id == 0)
+        return Results.Problem("Failed to create article.", statusCode: 500);
+
+    var deleted = await drafts.DeleteAsync(id);
+    if (!deleted)
+        return Results.Problem("Article created but draft could not be deleted.", statusCode: 500);
+
+    var agentUrl = config["FoundryAgent:EndpointUrl"];
+    if (!string.IsNullOrWhiteSpace(agentUrl))
+    {
+        try
+        {
+            var client = httpClientFactory.CreateClient();
+            var prompt = $"A new research article has been published. Title: {created.Title}. Content: {created.Content}";
+            var payload = JsonSerializer.Serialize(new { message = prompt });
+            await client.PostAsync($"{agentUrl}/suggestion",
+                new StringContent(payload, Encoding.UTF8, "application/json"));
+        }
+        catch
+        {
+            return Results.Ok(new { articleId = created.Id, title = created.Title, agentNotified = false });
+        }
+    }
+
+    return Results.Ok(new { articleId = created.Id, title = created.Title, agentNotified = true });
+});
+
 // API: ChatKit protocol endpoint (openai/chatkit-js self-hosted backend)
 app.MapPost("/chatkit", (HttpContext ctx, ChatKitStore store, ChatService chatService) =>
     ChatKitHandler.HandleAsync(ctx, store, chatService));

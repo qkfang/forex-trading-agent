@@ -50,11 +50,12 @@ public class DraftService
         }
     }
 
-    public bool Delete(int id)
+    public async Task<bool> DeleteAsync(int id)
     {
         try
         {
-            var response = _http.DeleteAsync($"{_baseUrl}/api/researchdrafts/{id}").Result;
+            var response = await _http.DeleteAsync($"{_baseUrl}/api/researchdrafts/{id}");
+            _logger.LogInformation("Delete draft {Id} returned {StatusCode}", id, (int)response.StatusCode);
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)

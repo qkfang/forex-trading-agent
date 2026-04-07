@@ -108,6 +108,25 @@
     <!-- ── Tab 2: Drafts ── -->
     <div class="tab-pane fade" id="tab-drafts">
         <h5 class="mb-3">Research Drafts</h5>
+
+        <!-- Publish progress overlay -->
+        <div id="publish-progress" class="mb-3" style="display:none">
+            <div class="card border-primary">
+                <div class="card-body">
+                    <h6 class="card-title mb-2" id="publish-title">Publishing draft...</h6>
+                    <div class="progress mb-2" style="height:22px">
+                        <div id="publish-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width:0%">0%</div>
+                    </div>
+                    <div id="publish-steps">
+                        <div id="step-load" class="text-muted small">⏳ Loading draft...</div>
+                        <div id="step-article" class="text-muted small">⏳ Creating research article...</div>
+                        <div id="step-delete" class="text-muted small">⏳ Removing draft...</div>
+                        <div id="step-agent" class="text-muted small">⏳ Notifying suggestion agent...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="table-responsive">
             <table class="table table-hover admin-table">
                 <thead>
@@ -125,7 +144,7 @@
                 <tbody>
                     @foreach (var d in Model.Drafts)
                     {
-                        <tr>
+                        <tr id="draft-row-@d.Id">
                             <td>@d.Id</td>
                             <td>@d.Title</td>
                             <td><span class="cat-badge cat-@(d.Category.Replace("/","-").Replace(" ","-").ToLower())">@d.Category</span></td>
@@ -134,12 +153,11 @@
                             <td>@d.Version</td>
                             <td>@d.CreatedAt.ToString("yyyy-MM-dd")</td>
                             <td>
-                                <form method="post" asp-page-handler="PublishDraft" asp-route-id="@d.Id" style="display:inline">
-                                    <button class="btn btn-xs btn-success" type="submit"
-                                            onclick="return confirm('Publish this draft as a research article?')">
-                                        Publish
-                                    </button>
-                                </form>
+                                <button class="btn btn-xs btn-success btn-publish-draft" type="button"
+                                        data-draft-id="@d.Id" data-draft-title="@d.Title"
+                                        onclick="publishDraft(this)">
+                                    Publish
+                                </button>
                             </td>
                         </tr>
                     }
@@ -293,3 +311,91 @@
     </div>
 
 </div>
+
+@section Scripts {
+<script>
+    function publishDraft(btn) {
+        if (!confirm('Publish this draft as a research article?')) return;
+
+        var draftId = btn.getAttribute('data-draft-id');
+        var draftTitle = btn.getAttribute('data-draft-title');
+
+        btn.disabled = true;
+        document.querySelectorAll('.btn-publish-draft').forEach(function(b) { b.disabled = true; });
+
+        var progress = document.getElementById('publish-progress');
+        var bar = document.getElementById('publish-bar');
+        var title = document.getElementById('publish-title');
+        progress.style.display = 'block';
+        title.textContent = 'Publishing: ' + draftTitle;
+
+        setStep('step-load', 'running', 'Loading draft...');
+        setBar(bar, 10);
+
+        setTimeout(function () {
+            setStep('step-load', 'done', 'Draft loaded');
+            setStep('step-article', 'running', 'Creating research article...');
+            setBar(bar, 30);
+
+            fetch('/api/admin/publish-draft/' + draftId, { method: 'POST' })
+                .then(function (res) {
+                    if (!res.ok) {
+                        return res.json().then(function (d) { throw new Error(d.error || d.detail || 'Publish failed'); });
+                    }
+                    setStep('step-article', 'done', 'Article created');
+                    setStep('step-delete', 'running', 'Removing draft...');
+                    setBar(bar, 60);
+                    return res.json();
+                })
+                .then(function (data) {
+                    setStep('step-delete', 'done', 'Draft removed');
+                    setStep('step-agent', 'running', 'Notifying suggestion agent...');
+                    setBar(bar, 80);
+
+                    setTimeout(function () {
+                        if (data.agentNotified) {
+                            setStep('step-agent', 'done', 'Agent notified');
+                        } else {
+                            setStep('step-agent', 'warn', 'Agent notification skipped');
+                        }
+                        setBar(bar, 100);
+                        bar.classList.remove('progress-bar-animated');
+                        bar.classList.add('bg-success');
+
+                        var row = document.getElementById('draft-row-' + draftId);
+                        if (row) row.remove();
+
+                        setTimeout(function () { location.reload(); }, 1500);
+                    }, 600);
+                })
+                .catch(function (err) {
+                    setBar(bar, 100);
+                    bar.classList.remove('progress-bar-animated');
+                    bar.classList.add('bg-danger');
+                    title.textContent = 'Error: ' + err.message;
+                    document.querySelectorAll('.btn-publish-draft').forEach(function(b) { b.disabled = false; });
+                });
+        }, 400);
+    }
+
+    function setBar(bar, pct) {
+        bar.style.width = pct + '%';
+        bar.textContent = pct + '%';
+    }
+
+    function setStep(id, state, text) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        if (state === 'running') {
+            el.className = 'text-primary small fw-bold';
+            el.textContent = '⏳ ' + text;
+        } else if (state === 'done') {
+            el.className = 'text-success small';
+            el.textContent = '✅ ' + text;
+        } else if (state === 'warn') {
+            el.className = 'text-warning small';
+            el.textContent = '⚠️ ' + text;
+        }
+    }
+</script>
+}

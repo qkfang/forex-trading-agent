@@ -82,59 +82,6 @@ public class IndexModel : PageModel
         return Page();
     }
 
-    public async Task<IActionResult> OnPostPublishDraft(int id)
-    {
-        var redirect = RequireAdmin();
-        if (redirect != null) return redirect;
-
-        var draft = _drafts.GetById(id);
-        if (draft == null)
-        {
-            Message = "Draft not found.";
-            LoadData();
-            return Page();
-        }
-
-        var article = new ResearchArticle
-        {
-            Title = draft.Title,
-            Content = draft.Content,
-            Author = draft.Author,
-            Category = draft.Category,
-            Tags = draft.Tags,
-            Status = "Published",
-            PublishedDate = DateTime.UtcNow,
-            Sentiment = "Neutral"
-        };
-
-        var created = _articles.Add(article);
-        _drafts.Delete(id);
-
-        // Invoke the research agent with the published article
-        var agentUrl = _configuration["FoundryAgent:EndpointUrl"];
-        if (!string.IsNullOrWhiteSpace(agentUrl))
-        {
-            try
-            {
-                var client = _httpClientFactory.CreateClient();
-                var prompt = $"A new research article has been published. Title: {created.Title}. Content: {created.Content}";
-                var payload = JsonSerializer.Serialize(new { message = prompt });
-                await client.PostAsync($"{agentUrl}/suggestion",
-                    new StringContent(payload, Encoding.UTF8, "application/json"));
-            }
-            catch (Exception ex)
-            {
-                Message = $"Draft published but agent notification failed: {ex.Message}";
-                LoadData();
-                return Page();
-            }
-        }
-
-        Message = $"Draft '{created.Title}' published and suggestion agent notified.";
-        LoadData();
-        return Page();
-    }
-
     public async Task<IActionResult> OnPostSendToBroker(int id)
     {
         var redirect = RequireAdmin();

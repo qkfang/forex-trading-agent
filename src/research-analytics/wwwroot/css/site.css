@@ -102,7 +102,7 @@ body { background: var(--page-bg); color: var(--text); font-family: var(--font);
     border-radius: 2px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #fff;
+    color: #000;
 }
 .cat-eur-usd           { background: #1a5276; }
 .cat-gbp-usd           { background: #512e5f; }
