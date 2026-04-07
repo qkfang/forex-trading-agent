@@ -1,6 +1,6 @@
 [
-  { "id": 1, "name": "Sarah Mitchell", "email": "sarah.mitchell@fx.com", "desk": "G10 Spot", "specialization": "USD,EUR,GBP", "region": "North America", "isActive": true, "joinedAt": "2020-03-15T09:00:00Z" },
-  { "id": 2, "name": "Marco Rossi", "email": "marco.rossi@fx.com", "desk": "G10 Options", "specialization": "EUR/USD,GBP/JPY", "region": "Europe", "isActive": true, "joinedAt": "2019-06-01T08:00:00Z" },
-  { "id": 3, "name": "Kenji Tanaka", "email": "kenji.tanaka@fx.com", "desk": "Asia FX", "specialization": "JPY,CNH,KRW", "region": "Asia Pacific", "isActive": true, "joinedAt": "2021-01-10T07:00:00Z" },
+  { "id": 1, "name": "Sarah Mitchell", "email": "sarah.mitchell@fx.com", "desk": "G10 Spot", "specialization": "AUD/USD,AUD/GBP", "region": "North America", "isActive": true, "joinedAt": "2020-03-15T09:00:00Z" },
+  { "id": 2, "name": "Marco Rossi", "email": "marco.rossi@fx.com", "desk": "G10 Options", "specialization": "AUD/USD,AUD/GBP", "region": "Europe", "isActive": true, "joinedAt": "2019-06-01T08:00:00Z" },
+  { "id": 3, "name": "Kenji Tanaka", "email": "kenji.tanaka@fx.com", "desk": "Asia FX", "specialization": "AUD/CNH,AUD/USD", "region": "Asia Pacific", "isActive": true, "joinedAt": "2021-01-10T07:00:00Z" },
   { "id": 4, "name": "Liam Chen", "email": "liam.chen@fx.com", "desk": "AUD Desk", "specialization": "AUD/USD,AUD/CNH,AUD/GBP", "region": "Asia Pacific", "isActive": true, "joinedAt": "2022-05-20T08:00:00Z" }
 ]
