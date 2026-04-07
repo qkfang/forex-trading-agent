@@ -3,7 +3,6 @@ param location string
 param tags object = {}
 param webAppPrincipalId string = ''
 param principals array = []
-param fabricDataAgentUrl string = ''
 
 resource aiHub 'Microsoft.CognitiveServices/accounts@2025-10-01-preview' = {
   name: name
@@ -20,7 +19,7 @@ resource aiHub 'Microsoft.CognitiveServices/accounts@2025-10-01-preview' = {
     allowProjectManagement: true
     customSubDomainName: name
     publicNetworkAccess: 'Enabled'
-    disableLocalAuth: true
+    disableLocalAuth: false
     networkAcls: {
       defaultAction: 'Allow'
     }
@@ -121,7 +120,7 @@ resource userAIUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-
 }]
 
 
-resource fabricConnection 'Microsoft.CognitiveServices/accounts/connections@2025-10-01-preview' = if (!empty(fabricDataAgentUrl)) {
+resource fabricConnection 'Microsoft.CognitiveServices/accounts/connections@2025-10-01-preview' = {
   parent: aiHub
   name: 'fabric-data-agent'
   properties: {
@@ -130,10 +129,38 @@ resource fabricConnection 'Microsoft.CognitiveServices/accounts/connections@2025
     target: '-'
     useWorkspaceManagedIdentity: false
     isSharedToAll: true
-    metadata: {
-      type: 'fabric_dataagent_preview'
+    credentials: {
+      keys: {
       'workspace-id': '39ba570f-fadb-4b13-85b3-6938686a4a07'
       'artifact-id': '52e38886-b47c-48f5-9e14-157b0b9f1245'
+      }
+    }
+    metadata: {
+      type: 'fabric_dataagent_preview'
+    }
+  }
+}
+
+resource fabricProjectConnection 'Microsoft.CognitiveServices/accounts/projects/connections@2025-10-01-preview' = {
+  parent: aiProject
+  name: 'fabric-data-agent-project'
+  properties: {
+    authType: 'CustomKeys'
+    category: 'CustomKeys'
+    target: '-'
+    useWorkspaceManagedIdentity: false
+    isSharedToAll: false
+    sharedUserList: []
+    peRequirement: 'NotRequired'
+    peStatus: 'NotApplicable'
+    credentials: {
+      keys: {
+      'workspace-id': '39ba570f-fadb-4b13-85b3-6938686a4a07'
+      'artifact-id': '52e38886-b47c-48f5-9e14-157b0b9f1245'
+      }
+    }
+    metadata: {
+      type: 'fabric_dataagent_preview'
     }
   }
 }
@@ -143,4 +170,4 @@ output endpoint string = aiHub.properties.endpoint
 output deploymentName string = gpt4oDeployment.name
 output projectName string = aiProject.name
 output location string = location
-output fabricConnectionName string = !empty(fabricDataAgentUrl) ? fabricConnection.name : ''
+output fabricConnectionName string = fabricConnection.name
