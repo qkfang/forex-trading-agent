@@ -37,9 +37,6 @@ var deploymentName = app.Configuration["AZURE_AI_MODEL_DEPLOYMENT_NAME"]
     ?? throw new InvalidOperationException("AZURE_AI_MODEL_DEPLOYMENT_NAME is not set.");
 var webSearchTool = ResponseTool.CreateWebSearchTool();
 
-var scope = "https://ai.azure.com/.default";
-var tokenRequestContext = new Azure.Core.TokenRequestContext([scope]);
-
 var tenantId = app.Configuration["AZURE_TENANT_ID"];
 var defaultCredential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
 {

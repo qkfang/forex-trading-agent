@@ -106,10 +106,83 @@ module azureFoundry 'modules/foundry.bicep' = {
     name: foundryName
     location: location
     tags: commonTags
-    webAppPrincipalId: crmBrokerApp.outputs.principalId
-    principals: principals
   }
 }
+
+resource foundryAccount 'Microsoft.CognitiveServices/accounts@2025-10-01-preview' existing = {
+  name: foundryName
+}
+
+var agentWebAppName = '${baseName}-agent'
+var cognitiveServicesOpenAIUserRoleId = '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
+var cognitiveServicesUserRoleId = 'a97b65f3-24c7-4388-baec-2e87135dc908'
+var azureAIUserRoleId = '53ca6127-db72-4b80-b1b0-d745d6d5456d'
+
+resource webAppOpenAIUserRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(foundryAccount.id, agentWebAppName, cognitiveServicesOpenAIUserRoleId)
+  scope: foundryAccount
+  dependsOn: [azureFoundry]
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', cognitiveServicesOpenAIUserRoleId)
+    principalId: fxAgentApp.outputs.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource userOpenAIUserRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = [for principal in principals: {
+  name: guid(foundryAccount.id, principal.id, cognitiveServicesOpenAIUserRoleId)
+  scope: foundryAccount
+  dependsOn: [azureFoundry]
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', cognitiveServicesOpenAIUserRoleId)
+    principalId: principal.id
+    principalType: principal.principalType
+  }
+}]
+
+resource webAppCogServicesUserRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(foundryAccount.id, agentWebAppName, cognitiveServicesUserRoleId)
+  scope: foundryAccount
+  dependsOn: [azureFoundry]
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', cognitiveServicesUserRoleId)
+    principalId: fxAgentApp.outputs.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource userCogServicesUserRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = [for principal in principals: {
+  name: guid(foundryAccount.id, principal.id, cognitiveServicesUserRoleId)
+  scope: foundryAccount
+  dependsOn: [azureFoundry]
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', cognitiveServicesUserRoleId)
+    principalId: principal.id
+    principalType: principal.principalType
+  }
+}]
+
+resource webAppAIUserRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(foundryAccount.id, agentWebAppName, azureAIUserRoleId)
+  scope: foundryAccount
+  dependsOn: [azureFoundry]
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', azureAIUserRoleId)
+    principalId: fxAgentApp.outputs.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource userAIUserRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = [for principal in principals: {
+  name: guid(foundryAccount.id, principal.id, azureAIUserRoleId)
+  scope: foundryAccount
+  dependsOn: [azureFoundry]
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', azureAIUserRoleId)
+    principalId: principal.id
+    principalType: principal.principalType
+  }
+}]
 
 module keyVault 'modules/keyvault.bicep' = {
   name: 'keyVaultDeployment'
@@ -125,7 +198,7 @@ module storageAccount 'modules/storage.bicep' = {
     name: storageAccountName
     location: location
     tags: commonTags
-    webAppPrincipalId: crmBrokerApp.outputs.principalId
+    webAppPrincipalId: fxAgentApp.outputs.principalId
     principals: principals
   }
 }
