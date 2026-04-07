@@ -26,6 +26,7 @@ public class IndexModel : PageModel
 
     public List<ResearchArticle> MarketInsights { get; set; } = new();
     public List<CustomerSuggestion> Suggestions { get; set; } = new();
+    public List<TraderSuggestion> TraderSuggestions { get; set; } = new();
     public string DisplayName { get; set; } = string.Empty;
     public List<string> Interests { get; set; } = new();
     public string Message { get; set; } = string.Empty;
@@ -39,11 +40,11 @@ public class IndexModel : PageModel
         return null;
     }
 
-    public IActionResult OnGet()
+    public async Task<IActionResult> OnGetAsync()
     {
         var redirect = RequireUser();
         if (redirect != null) return redirect;
-        LoadData();
+        await LoadDataAsync();
         return Page();
     }
 
@@ -56,7 +57,7 @@ public class IndexModel : PageModel
         if (suggestion == null)
         {
             Message = "Suggestion not found.";
-            LoadData();
+            await LoadDataAsync();
             return Page();
         }
 
@@ -96,11 +97,11 @@ public class IndexModel : PageModel
             Message = "Broker notification URL is not configured.";
         }
 
-        LoadData();
+        await LoadDataAsync();
         return Page();
     }
 
-    private void LoadData()
+    private async Task LoadDataAsync()
     {
         DisplayName = HttpContext.Session.GetString("UserDisplayName")
             ?? _configuration["User:DisplayName"] ?? "Trader";
@@ -119,10 +120,28 @@ public class IndexModel : PageModel
             ? allPublished.Where(a => Interests.Contains(a.Category)).ToList()
             : allPublished;
 
-        // Suggest Customer: suggestions matching user's preferred currency pairs
+        // Recommendations: suggestions matching user's preferred currency pairs
         var allSuggestions = _suggestions.GetAll();
         Suggestions = Interests.Count > 0
             ? allSuggestions.Where(s => Interests.Contains(s.CurrencyPair)).ToList()
             : allSuggestions;
+
+        // Customer Suggestions: load from api-intg
+        var apiBase = _configuration["IntegrationApi:BaseUrl"] ?? "http://localhost:5005";
+        try
+        {
+            var client = _httpClientFactory.CreateClient();
+            var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var response = await client.GetAsync($"{apiBase}/api/tradersuggestions");
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                TraderSuggestions = System.Text.Json.JsonSerializer.Deserialize<List<TraderSuggestion>>(json, options) ?? new();
+            }
+        }
+        catch
+        {
+            TraderSuggestions = new();
+        }
     }
 }

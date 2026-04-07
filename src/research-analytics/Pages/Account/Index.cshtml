@@ -42,7 +42,12 @@
     </li>
     <li class="nav-item">
         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-suggestions">
-            <i class="fa-solid fa-robot me-1"></i> Suggest Customer
+            <i class="fa-solid fa-robot me-1"></i> Recommendations
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-customer-suggestions">
+            <i class="fa-solid fa-lightbulb me-1"></i> Customer Suggestions
         </button>
     </li>
     <li class="nav-item">
@@ -99,11 +104,11 @@
         }
     </div>
 
-    <!-- ── Tab 2: Suggest Customer ── -->
+    <!-- ── Tab 2: Recommendations ── -->
     <div class="tab-pane fade" id="tab-suggestions">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-                <h5 class="mb-0">AI-Suggested Customer Prospects</h5>
+                <h5 class="mb-0">Recommendations</h5>
                 <p class="text-muted small mb-0 mt-1">Prospects matching your interest in <strong>@string.Join(", ", Model.Interests)</strong></p>
             </div>
             <span class="badge bg-danger fs-6">@Model.Suggestions.Count</span>
@@ -187,7 +192,73 @@
         </div>
     </div>
 
-    <!-- ── Tab 3: Ask AI ── -->
+    <!-- ── Tab 3: Customer Suggestions ── -->
+    <div class="tab-pane fade" id="tab-customer-suggestions">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h5 class="mb-0">Customer Suggestions</h5>
+                <p class="text-muted small mb-0 mt-1">AI-generated suggestions linking customers to research articles</p>
+            </div>
+            <span class="badge bg-danger fs-6">@Model.TraderSuggestions.Count</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover admin-table">
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Company</th>
+                        <th>Article</th>
+                        <th>Reasoning</th>
+                        <th>Relevance</th>
+                        <th>Status</th>
+                        <th>Trader</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model.TraderSuggestions)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">@(s.Customer?.Name ?? "-")</div>
+                                <div class="text-muted small">@(s.Customer?.Email ?? "")</div>
+                            </td>
+                            <td>@(s.Customer?.Company ?? "-")</td>
+                            <td class="suggestion-analysis" title="@(s.ResearchArticle?.Title ?? "")">
+                                @TextHelper.Truncate(s.ResearchArticle?.Title ?? "-", 60)
+                            </td>
+                            <td class="suggestion-analysis" title="@s.Reasoning">
+                                @TextHelper.Truncate(s.Reasoning, 80)
+                            </td>
+                            <td>
+                                @if (s.RelevanceScore == "High")
+                                {
+                                    <span class="badge bg-success">High</span>
+                                }
+                                else if (s.RelevanceScore == "Medium")
+                                {
+                                    <span class="badge bg-warning text-dark">Medium</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">@s.RelevanceScore</span>
+                                }
+                            </td>
+                            <td><span class="badge bg-info text-dark">@s.Status</span></td>
+                            <td class="text-muted small">@(s.Trader?.Name ?? "-")</td>
+                            <td class="text-muted small">@s.CreatedAt.ToString("yyyy-MM-dd")</td>
+                        </tr>
+                    }
+                    @if (!Model.TraderSuggestions.Any())
+                    {
+                        <tr><td colspan="8" class="text-center text-muted py-4">No customer suggestions available yet.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ── Tab 4: Ask AI ── -->
     <div class="tab-pane fade" id="tab-chat">
         <!-- Settings bar -->
         <div class="d-flex align-items-center gap-3 mb-3 p-3 aichat-settings">

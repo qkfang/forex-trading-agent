@@ -698,92 +698,6 @@
         .wo-value.buy { color: var(--green); }
         .wo-value.sell { color: var(--red); }
 
-        /* ── BOTTOM: BLOTTER ── */
-        .bottom-layout {
-            height: 220px;
-            flex-shrink: 0;
-            border-top: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .blotter-tabs {
-            display: flex;
-            align-items: stretch;
-            background: #0f1520;
-            border-bottom: 1px solid var(--border);
-            flex-shrink: 0;
-            padding: 0 12px;
-            gap: 0;
-        }
-        .blotter-tab {
-            font-size: 10px;
-            font-weight: 600;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-            padding: 0 14px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            color: var(--text-muted);
-            border-bottom: 2px solid transparent;
-            transition: all 0.15s;
-        }
-        .blotter-tab:hover { color: var(--text); }
-        .blotter-tab.active { color: white; border-bottom-color: var(--gold); }
-
-        .blotter-table-wrap {
-            flex: 1;
-            overflow: auto;
-        }
-        .blotter-table-wrap::-webkit-scrollbar { width: 4px; height: 4px; }
-        .blotter-table-wrap::-webkit-scrollbar-track { background: transparent; }
-        .blotter-table-wrap::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-
-        .blotter-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 10.5px;
-            white-space: nowrap;
-        }
-        .blotter-table thead th {
-            background: var(--panel2);
-            color: var(--text-muted);
-            font-weight: 600;
-            font-size: 9.5px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            padding: 5px 10px;
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 1;
-        }
-        .blotter-table tbody tr {
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-            transition: background 0.1s;
-        }
-        .blotter-table tbody tr:hover { background: rgba(255,255,255,0.03); }
-        .blotter-table tbody td {
-            padding: 5px 10px;
-            color: var(--text-muted);
-            font-size: 10.5px;
-        }
-        .blotter-table td.highlight { color: var(--text); }
-        .status-badge {
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            padding: 1px 7px;
-            border-radius: 2px;
-            display: inline-block;
-        }
-        .status-badge.filled { background: var(--green-dim); color: var(--green); border: 1px solid rgba(0,201,122,0.3); }
-        .status-badge.working { background: rgba(245,166,35,0.12); color: var(--working); border: 1px solid rgba(245,166,35,0.3); }
-        .side-buy { color: var(--green); font-weight: 700; }
-        .side-sell { color: var(--red); font-weight: 700; }
-
         /* workflow phase indicator */
         .phase-bar {
             background: var(--panel2);
@@ -1118,38 +1032,6 @@
 
     </div>
 
-    <!-- BOTTOM: BLOTTER -->
-    <div class="bottom-layout">
-        <div class="blotter-tabs">
-            <div class="blotter-tab active">Blotter</div>
-            <div class="blotter-tab">Positions</div>
-            <div class="blotter-tab">Trade History</div>
-        </div>
-        <div class="blotter-table-wrap">
-            <table class="blotter-table">
-                <thead>
-                    <tr>
-                        <th>Created</th>
-                        <th>Last Updated</th>
-                        <th>Status</th>
-                        <th>Order Type</th>
-                        <th>Product Type</th>
-                        <th>Security</th>
-                        <th>Side</th>
-                        <th>Currency</th>
-                        <th>Qty</th>
-                        <th>Cum Qty</th>
-                        <th>Avg Px</th>
-                        <th>TIF</th>
-                        <th>Contra</th>
-                    </tr>
-                </thead>
-                <tbody id="blotterBody">
-                </tbody>
-            </table>
-        </div>
-    </div>
-
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script>
         const AURORA_API = '@Model.AuroraApiUrl';
@@ -1174,7 +1056,6 @@
         window.addEventListener('DOMContentLoaded', function () {
             renderTile(null, null);
             startQuoteFeed();
-            renderBlotter([]);
             goPhase(1);
         });
 
@@ -1534,7 +1415,6 @@
                 </div>
                 <div style="margin-top:10px;font-size:10px;color:var(--green);"><i class="fa-solid fa-circle-check"></i> Trade executed — notional $${notional.toLocaleString()}</div>
             `;
-            addBlotterRow();
         }
 
         // ── Step 6 ─────────────────────────────────────────────
@@ -1597,55 +1477,6 @@
                     </div>
                 </div>
             `;
-        }
-
-        // ── Blotter ───────────────────────────────────────────
-        let blotterRows = [];
-        function renderBlotter(rows) {
-            const body = document.getElementById('blotterBody');
-            if (!rows.length) {
-                body.innerHTML = '<tr><td colspan="13" style="text-align:center;color:var(--text-dim);padding:16px;">No trades</td></tr>';
-                return;
-            }
-            body.innerHTML = rows.map(r => `
-                <tr>
-                    <td class="highlight">${r.created}</td>
-                    <td>${r.updated}</td>
-                    <td><span class="status-badge ${r.status.toLowerCase()}">${r.status}</span></td>
-                    <td>${r.orderType}</td>
-                    <td>${r.productType}</td>
-                    <td class="highlight">${r.security}</td>
-                    <td class="${r.side === 'BUY' ? 'side-buy' : 'side-sell'}">${r.side}</td>
-                    <td>${r.currency}</td>
-                    <td class="highlight">${r.qty}</td>
-                    <td>${r.cumQty}</td>
-                    <td class="highlight">${r.avgPx}</td>
-                    <td>${r.tif}</td>
-                    <td>${r.contra}</td>
-                </tr>
-            `).join('');
-        }
-
-        function addBlotterRow() {
-            const now = new Date();
-            const ts = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
-            const [ccy1, ccy2] = tradeData.pair.split('/');
-            blotterRows.unshift({
-                created: ts,
-                updated: ts,
-                status: 'FILLED',
-                orderType: 'SPOT',
-                productType: 'SPOT',
-                security: tradeData.pair,
-                side: tradeData.action?.toUpperCase(),
-                currency: ccy1,
-                qty: (tradeData.lots * 1000000).toLocaleString(),
-                cumQty: (tradeData.lots * 1000000).toLocaleString(),
-                avgPx: tradeData.rate.toFixed(5),
-                tif: 'GTC',
-                contra: ccy2 + ': ' + (tradeData.lots * 100000 * tradeData.rate).toLocaleString(undefined, {maximumFractionDigits:0})
-            });
-            renderBlotter(blotterRows);
         }
 
         // ── Helpers ───────────────────────────────────────────
