@@ -245,7 +245,7 @@
                             <td><span class="badge bg-info text-dark">@s.Status</span></td>
                             <td class="text-muted small">@(s.Trader?.Name ?? "-")</td>
                             <td class="text-muted small">@s.CreatedAt.ToString("yyyy-MM-dd")</td>
-                            <td>
+                            <td class="d-flex gap-1 flex-wrap">
                                 @{
                                     var articleTags = s.ResearchArticle?.Tags ?? string.Empty;
                                     var pair = articleTags.Split(',').FirstOrDefault(t => t.Contains('/')) ?? "AUD/USD";
