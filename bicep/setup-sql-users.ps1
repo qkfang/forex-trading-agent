@@ -8,5 +8,9 @@ ALTER ROLE db_owner ADD MEMBER [sp-demo-01];
 IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'fxag-intg')
     CREATE USER [fxag-intg] FROM EXTERNAL PROVIDER;
 ALTER ROLE db_owner ADD MEMBER [fxag-intg];
+
+IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'fxag-broker')
+    CREATE USER [fxag-broker] FROM EXTERNAL PROVIDER;
+ALTER ROLE db_owner ADD MEMBER [fxag-broker];
 "@
 
