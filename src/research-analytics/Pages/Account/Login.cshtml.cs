@@ -31,6 +31,7 @@ public class LoginModel : PageModel
         {
             HttpContext.Session.SetString("UserAuth", "true");
             HttpContext.Session.SetString("UserDisplayName", _config["User:DisplayName"] ?? username);
+            HttpContext.Session.SetInt32("TraderId", 1);
             return RedirectToPage("/Account/Index");
         }
 

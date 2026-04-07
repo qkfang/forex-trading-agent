@@ -166,9 +166,6 @@
                             </td>
                             <td class="text-muted small">@s.ReceivedAt.ToString("yyyy-MM-dd HH:mm")</td>
                             <td class="d-flex gap-1 flex-wrap">
-                                <a href="tel:@s.Phone" class="btn btn-xs btn-outline-success" title="Call @s.CustomerName at @s.Phone">
-                                    📞 Call
-                                </a>
                                 <form method="post" asp-page-handler="SendSuggestionToBroker" asp-route-id="@s.Id" style="display:inline">
                                     <button class="btn btn-xs btn-outline-primary" type="submit"
                                             title="Push this prospect to Broker CRM">
@@ -213,6 +210,7 @@
                         <th>Status</th>
                         <th>Trader</th>
                         <th>Date</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -247,11 +245,27 @@
                             <td><span class="badge bg-info text-dark">@s.Status</span></td>
                             <td class="text-muted small">@(s.Trader?.Name ?? "-")</td>
                             <td class="text-muted small">@s.CreatedAt.ToString("yyyy-MM-dd")</td>
+                            <td>
+                                @{
+                                    var articleTags = s.ResearchArticle?.Tags ?? string.Empty;
+                                    var pair = articleTags.Split(',').FirstOrDefault(t => t.Contains('/')) ?? "AUD/USD";
+                                    var signal = (s.ResearchArticle?.Sentiment ?? "") == "Bearish" ? "Sell" : "Buy";
+                                    var customerName = s.Customer?.Name ?? "Customer";
+                                }
+                                <a href="tel:@(s.Customer?.Phone ?? "")" class="btn btn-xs btn-outline-success" title="Call @customerName at @(s.Customer?.Phone ?? "")">
+                                    📞 Call
+                                </a>
+                                <a href="/Account/AuroraWorkflow?customer=@Uri.EscapeDataString(customerName)&pair=@Uri.EscapeDataString(pair)&signal=@Uri.EscapeDataString(signal)"
+                                   class="btn btn-xs btn-aurora"
+                                   title="Open Aurora workflow for @customerName — @signal @pair">
+                                    ✦ Aurora
+                                </a>
+                            </td>
                         </tr>
                     }
                     @if (!Model.TraderSuggestions.Any())
                     {
-                        <tr><td colspan="8" class="text-center text-muted py-4">No customer suggestions available yet.</td></tr>
+                        <tr><td colspan="9" class="text-center text-muted py-4">No customer suggestions available yet.</td></tr>
                     }
                 </tbody>
             </table>

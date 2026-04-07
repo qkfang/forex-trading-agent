@@ -11,7 +11,7 @@ public class TraderSuggestion
     public string Status { get; set; } = "Pending";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    public Trader Trader { get; set; } = null!;
-    public Customer Customer { get; set; } = null!;
-    public ResearchArticle ResearchArticle { get; set; } = null!;
+    public Trader? Trader { get; set; }
+    public Customer? Customer { get; set; }
+    public ResearchArticle? ResearchArticle { get; set; }
 }

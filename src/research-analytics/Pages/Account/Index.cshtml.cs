@@ -126,13 +126,14 @@ public class IndexModel : PageModel
             ? allSuggestions.Where(s => Interests.Contains(s.CurrencyPair)).ToList()
             : allSuggestions;
 
-        // Customer Suggestions: load from api-intg
+        // Customer Suggestions: load from api-intg filtered by logged-in trader
         var apiBase = _configuration["IntegrationApi:BaseUrl"] ?? "http://localhost:5005";
+        var traderId = HttpContext.Session.GetInt32("TraderId") ?? 1;
         try
         {
             var client = _httpClientFactory.CreateClient();
             var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var response = await client.GetAsync($"{apiBase}/api/tradersuggestions");
+            var response = await client.GetAsync($"{apiBase}/api/tradersuggestions/trader/{traderId}");
             if (response.IsSuccessStatusCode)
             {
                 var json = await response.Content.ReadAsStringAsync();

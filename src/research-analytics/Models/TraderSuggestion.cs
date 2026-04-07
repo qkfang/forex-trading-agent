@@ -36,4 +36,6 @@ public class TraderSuggestionArticle
     public int Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
+    public string Tags { get; set; } = string.Empty;
+    public string Sentiment { get; set; } = string.Empty;
 }
