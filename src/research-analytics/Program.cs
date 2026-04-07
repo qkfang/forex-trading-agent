@@ -129,7 +129,7 @@ app.MapPost("/api/agent/trader", async (HttpContext ctx, IConfiguration config) 
         ?? "https://fxag-foundry.services.ai.azure.com/api/projects/fxag-foundry-project";
 
     var projectClient = new Azure.AI.Projects.AIProjectClient(
-        new Uri(projectEndpoint), new DefaultAzureCredential());
+        new Uri(projectEndpoint), new AzureCliCredential());
 
     var responseClient = projectClient.ProjectOpenAIClient
         .GetProjectResponsesClientForAgent("fxag-trader");
@@ -141,21 +141,29 @@ app.MapPost("/api/agent/trader", async (HttpContext ctx, IConfiguration config) 
 
     OpenAI.Responses.ResponseResult? result = null;
 
-    while (nextOptions is not null)
+    try
     {
-        result = await responseClient.CreateResponseAsync(nextOptions);
-        nextOptions = null;
-
-        foreach (var item in result.OutputItems)
+        while (nextOptions is not null)
         {
-            if (item is OpenAI.Responses.McpToolCallApprovalRequestItem mcpCall)
+            result = await responseClient.CreateResponseAsync(nextOptions);
+            nextOptions = null;
+
+            foreach (var item in result.OutputItems)
             {
-                nextOptions ??= new OpenAI.Responses.CreateResponseOptions
-                    { PreviousResponseId = result.Id };
-                nextOptions.InputItems.Add(
-                    OpenAI.Responses.ResponseItem.CreateMcpApprovalResponseItem(mcpCall.Id, approved: true));
+                if (item is OpenAI.Responses.McpToolCallApprovalRequestItem mcpCall)
+                {
+                    nextOptions ??= new OpenAI.Responses.CreateResponseOptions
+                        { PreviousResponseId = result.Id };
+                    nextOptions.InputItems.Add(
+                        OpenAI.Responses.ResponseItem.CreateMcpApprovalResponseItem(mcpCall.Id, approved: true));
+                }
             }
         }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error calling agent: {ex}");
+        return Results.Problem($"Agent call failed: {ex.Message}", statusCode: 500);
     }
 
     return Results.Content(result?.GetOutputText() ?? string.Empty, "text/plain");

@@ -58,10 +58,6 @@ app.MapPost("/api/trades", (Transaction transaction, FxDataService fxData) =>
 app.MapGet("/api/trades", (FxDataService fxData) =>
     Results.Ok(fxData.GetTransactions()));
 
-// Expose portfolio/fund summary (used by FX Agent)
-app.MapGet("/api/portfolio", (FxDataService fxData) =>
-    Results.Ok(fxData.GetFundSummary()));
-
 app.MapControllers();
 app.MapRazorPages();
 app.MapMcp("/mcp");
