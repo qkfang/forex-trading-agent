@@ -23,9 +23,9 @@ DBCC CHECKIDENT ('CustomerPreferences', RESEED, 0);
 DBCC CHECKIDENT ('Traders', RESEED, 0);
 DBCC CHECKIDENT ('TraderRecommendations', RESEED, 0);
 DBCC CHECKIDENT ('TraderNewsFeeds', RESEED, 0);
+DBCC CHECKIDENT ('TraderSuggestions', RESEED, 0);
 DBCC CHECKIDENT ('ResearchDrafts', RESEED, 0);
 DBCC CHECKIDENT ('ResearchPatterns', RESEED, 0);
-DBCC CHECKIDENT ('TraderSuggestions', RESEED, 0);
 
 -------------------------------------------------------
 -- Customers (10 records)
