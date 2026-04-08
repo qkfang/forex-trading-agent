@@ -190,52 +190,49 @@ namespace FxWebApi.Services
             }
         }
 
-        public FxTransactionResult ExecuteTransaction(string type, decimal amount, string source = "API")
-        {
-            FxQuote quote;
-            lock (_lock) { quote = GetCurrentQuote(); }
-
-            // Buy at ask, sell at bid (market maker convention)
-            var executionRate = type.ToLower() == "buy" ? quote.Ask : quote.Bid;
-            var total = Math.Round(amount * executionRate, 2);
-
-            var record = new TransactionRecord
-            {
-                Id = $"TXN{_nextTxId++:D6}",
-                Type = type,
-                CurrencyPair = "AUD/USD",
-                Amount = amount,
-                Rate = executionRate,
-                Total = total,
-                Source = source,
-                Timestamp = DateTime.UtcNow
-            };
-
-            // Push transaction to trading platform
-            _ = Task.Run(() => PushToTradingPlatform(record));
-
-            lock (_lock) { _transactions.Insert(0, record); }
-
-            return new FxTransactionResult
-            {
-                Success = true,
-                Message = $"{type} {amount:N0} AUD/USD executed at {executionRate:F4}",
-                Transaction = new FxTransaction
-                {
-                    Type = type,
-                    CurrencyPair = "AUD/USD",
-                    Amount = amount,
-                    Rate = executionRate
-                },
-                Record = record
-            };
-        }
-
         public List<TransactionRecord> GetTransactions(int limit = 50)
         {
             lock (_lock)
             {
                 return _transactions.Take(limit).ToList();
+            }
+        }
+
+        public FxTransactionResult ExecuteTransaction(string type, decimal amount, string source)
+        {
+            lock (_lock)
+            {
+                var halfSpread = _spread / 2;
+                var rate = type == "Buy"
+                    ? Math.Round(_mid + halfSpread, 4)
+                    : Math.Round(_mid - halfSpread, 4);
+
+                var record = new TransactionRecord
+                {
+                    Id = $"TX{_nextTxId++}",
+                    Type = type,
+                    CurrencyPair = "AUD/USD",
+                    Amount = amount,
+                    Rate = rate,
+                    Total = Math.Round(amount * rate, 2),
+                    Source = source,
+                    Timestamp = DateTime.UtcNow
+                };
+                _transactions.Insert(0, record);
+
+                return new FxTransactionResult
+                {
+                    Success = true,
+                    Message = $"{type} {amount} AUD/USD at {rate:F4}",
+                    Transaction = new FxTransaction
+                    {
+                        Type = type,
+                        CurrencyPair = "AUD/USD",
+                        Amount = amount,
+                        Rate = rate
+                    },
+                    Record = record
+                };
             }
         }
 
@@ -340,30 +337,5 @@ namespace FxWebApi.Services
             return "New York";
         }
 
-        private async void PushToTradingPlatform(TransactionRecord record)
-        {
-            try
-            {
-                var tradingPlatformUrl = _configuration["TradingPlatformUrl"] ?? "http://localhost:5249";
-                var client = _httpClientFactory.CreateClient();
-                
-                var transaction = new
-                {
-                    type = record.Type,
-                    currencyPair = record.CurrencyPair,
-                    amount = record.Amount,
-                    rate = record.Rate,
-                    total = record.Total,
-                    dateTime = record.Timestamp
-                };
-
-                var response = await client.PostAsJsonAsync($"{tradingPlatformUrl}/api/transactions", transaction);
-                response.EnsureSuccessStatusCode();
-            }
-            catch
-            {
-                // Silently fail - trading platform may not be running
-            }
-        }
     }
 }

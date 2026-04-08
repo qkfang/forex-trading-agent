@@ -1,4 +1,6 @@
+using FxWebApi.Data;
 using FxWebApi.Models;
+using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Text.Json;
 
@@ -10,6 +12,7 @@ namespace FxWebApi.Services
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _config;
         private readonly ILogger<AccountService> _logger;
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly List<Account> _accounts;
         private readonly Dictionary<int, List<Position>> _positions;
         private readonly Dictionary<int, List<AccountTransaction>> _transactions;
@@ -18,153 +21,137 @@ namespace FxWebApi.Services
         private readonly object _lock = new();
 
         public AccountService(FxRateService fxRateService, IHttpClientFactory httpClientFactory,
-            IConfiguration config, ILogger<AccountService> logger)
+            IConfiguration config, ILogger<AccountService> logger, IServiceScopeFactory scopeFactory)
         {
             _fxRateService = fxRateService;
             _httpClientFactory = httpClientFactory;
             _config = config;
             _logger = logger;
+            _scopeFactory = scopeFactory;
 
-            _accounts = new List<Account>
+            _accounts = new List<Account>();
+            _positions = new Dictionary<int, List<Position>>();
+            _transactions = new Dictionary<int, List<AccountTransaction>>();
+
+            LoadCustomerDataFromDatabase();
+        }
+
+        private void LoadCustomerDataFromDatabase()
+        {
+            try
             {
-                new Account
+                using var scope = _scopeFactory.CreateScope();
+                var dbContext = scope.ServiceProvider.GetRequiredService<FxDbContext>();
+
+                var customers = dbContext.Customers
+                    .Include(c => c.Portfolios)
+                    .ToList();
+
+                if (customers.Count == 0)
                 {
-                    Id = 1,
-                    AccountNumber = "FX10001",
-                    CustomerName = "James Wilson",
-                    Email = "james.wilson@email.com",
-                    Country = "Australia",
-                    AccountType = "Standard",
-                    Status = "Active",
-                    Balance = 50125m,
-                    Leverage = 100m,
-                    CreatedAt = new DateTime(2023, 3, 15)
-                },
-                new Account
-                {
-                    Id = 2,
-                    AccountNumber = "FX10002",
-                    CustomerName = "Sarah Chen",
-                    Email = "sarah.chen@email.com",
-                    Country = "Singapore",
-                    AccountType = "Professional",
-                    Status = "Active",
-                    Balance = 126375m,
-                    Leverage = 200m,
-                    CreatedAt = new DateTime(2022, 11, 8)
-                },
-                new Account
-                {
-                    Id = 3,
-                    AccountNumber = "FX10003",
-                    CustomerName = "Michael Torres",
-                    Email = "m.torres@email.com",
-                    Country = "United States",
-                    AccountType = "VIP",
-                    Status = "Active",
-                    Balance = 74600m,
-                    Leverage = 100m,
-                    CreatedAt = new DateTime(2024, 1, 20)
+                    _logger.LogWarning("No customers found in database");
+                    return;
                 }
-            };
 
-            _positions = new Dictionary<int, List<Position>>
-            {
+                foreach (var customer in customers)
                 {
-                    1, new List<Position>
+                    var account = new Account
                     {
-                        new Position
-                        {
-                            PositionId = "POS001",
-                            AccountId = 1,
-                            CurrencyPair = "AUD/USD",
-                            Type = "Buy",
-                            Lots = 0.5m,
-                            OpenRate = 0.6520m,
-                            CurrentRate = 0.6520m,
-                            PnL = 0m,
-                            Margin = 326m,
-                            OpenTime = DateTime.UtcNow.AddHours(-3)
-                        }
-                    }
-                },
-                {
-                    2, new List<Position>
-                    {
-                        new Position
-                        {
-                            PositionId = "POS002",
-                            AccountId = 2,
-                            CurrencyPair = "AUD/USD",
-                            Type = "Sell",
-                            Lots = 1.0m,
-                            OpenRate = 0.6580m,
-                            CurrentRate = 0.6580m,
-                            PnL = 0m,
-                            Margin = 329m,
-                            OpenTime = DateTime.UtcNow.AddHours(-6)
-                        },
-                        new Position
-                        {
-                            PositionId = "POS003",
-                            AccountId = 2,
-                            CurrencyPair = "AUD/USD",
-                            Type = "Buy",
-                            Lots = 0.3m,
-                            OpenRate = 0.6540m,
-                            CurrentRate = 0.6540m,
-                            PnL = 0m,
-                            Margin = 98.1m,
-                            OpenTime = DateTime.UtcNow.AddHours(-2)
-                        }
-                    }
-                },
-                { 3, new List<Position>() }
-            };
+                        Id = customer.Id,
+                        AccountNumber = $"FX{10000 + customer.Id}",
+                        CustomerName = customer.Name,
+                        Email = customer.Email,
+                        Country = customer.Company,
+                        AccountType = "Standard",
+                        Status = "Active",
+                        Balance = 50000m,
+                        Leverage = 100m,
+                        CreatedAt = customer.CreatedAt
+                    };
+                    _accounts.Add(account);
 
-            var now = DateTime.UtcNow;
-            _transactions = new Dictionary<int, List<AccountTransaction>>
-            {
-                {
-                    1, new List<AccountTransaction>
+                    // Map open portfolios to positions
+                    var positions = customer.Portfolios
+                        .Where(p => p.Status == "Open")
+                        .Select(p => new Position
+                        {
+                            PositionId = $"POS{p.Id}",
+                            AccountId = customer.Id,
+                            CurrencyPair = p.CurrencyPair,
+                            Type = p.Direction,
+                            Lots = p.Amount / 100000m,
+                            OpenRate = p.EntryRate,
+                            CurrentRate = p.EntryRate,
+                            PnL = 0m,
+                            Margin = Math.Round((p.Amount / 100000m * p.EntryRate * 100000m) / account.Leverage, 2),
+                            OpenTime = p.OpenedAt
+                        })
+                        .ToList();
+                    _positions[customer.Id] = positions;
+
+                    // Map customer histories to account transactions
+                    var histories = dbContext.CustomerHistories
+                        .Where(h => h.CustomerId == customer.Id)
+                        .OrderBy(h => h.OpenedAt)
+                        .ToList();
+
+                    var txList = new List<AccountTransaction>
                     {
-                        new AccountTransaction { TransactionId = "T001", AccountId = 1, Type = "Deposit", CurrencyPair = "-", Lots = 0, Rate = 0, PnL = 0, BalanceAfter = 50000m, Timestamp = new DateTime(2023, 3, 15) },
-                        new AccountTransaction { TransactionId = "T002", AccountId = 1, Type = "Buy", CurrencyPair = "AUD/USD", Lots = 1.0m, Rate = 0.6485m, PnL = 0, BalanceAfter = 50000m, Timestamp = now.AddDays(-5) },
-                        new AccountTransaction { TransactionId = "T003", AccountId = 1, Type = "Close Buy", CurrencyPair = "AUD/USD", Lots = 1.0m, Rate = 0.6530m, PnL = 450m, BalanceAfter = 50450m, Timestamp = now.AddDays(-4) },
-                        new AccountTransaction { TransactionId = "T004", AccountId = 1, Type = "Sell", CurrencyPair = "AUD/USD", Lots = 0.5m, Rate = 0.6555m, PnL = 0, BalanceAfter = 50450m, Timestamp = now.AddDays(-3) },
-                        new AccountTransaction { TransactionId = "T005", AccountId = 1, Type = "Close Sell", CurrencyPair = "AUD/USD", Lots = 0.5m, Rate = 0.6510m, PnL = 225m, BalanceAfter = 50675m, Timestamp = now.AddDays(-2) },
-                        new AccountTransaction { TransactionId = "T006", AccountId = 1, Type = "Sell", CurrencyPair = "AUD/USD", Lots = 1.0m, Rate = 0.6590m, PnL = 0, BalanceAfter = 50675m, Timestamp = now.AddDays(-1) },
-                        new AccountTransaction { TransactionId = "T007", AccountId = 1, Type = "Close Sell", CurrencyPair = "AUD/USD", Lots = 1.0m, Rate = 0.6645m, PnL = -550m, BalanceAfter = 50125m, Timestamp = now.AddHours(-12) },
-                        new AccountTransaction { TransactionId = "T008", AccountId = 1, Type = "Buy", CurrencyPair = "AUD/USD", Lots = 0.5m, Rate = 0.6520m, PnL = 0, BalanceAfter = 50125m, Timestamp = now.AddHours(-3) }
-                    }
-                },
-                {
-                    2, new List<AccountTransaction>
+                        new AccountTransaction
+                        {
+                            TransactionId = $"T{customer.Id}00",
+                            AccountId = customer.Id,
+                            Type = "Deposit",
+                            CurrencyPair = "-",
+                            Lots = 0,
+                            Rate = 0,
+                            PnL = 0,
+                            BalanceAfter = 50000m,
+                            Timestamp = customer.CreatedAt
+                        }
+                    };
+
+                    decimal balance = 50000m;
+                    foreach (var h in histories)
                     {
-                        new AccountTransaction { TransactionId = "T101", AccountId = 2, Type = "Deposit", CurrencyPair = "-", Lots = 0, Rate = 0, PnL = 0, BalanceAfter = 125000m, Timestamp = new DateTime(2022, 11, 8) },
-                        new AccountTransaction { TransactionId = "T102", AccountId = 2, Type = "Buy", CurrencyPair = "AUD/USD", Lots = 2.0m, Rate = 0.6430m, PnL = 0, BalanceAfter = 125000m, Timestamp = now.AddDays(-7) },
-                        new AccountTransaction { TransactionId = "T103", AccountId = 2, Type = "Close Buy", CurrencyPair = "AUD/USD", Lots = 2.0m, Rate = 0.6510m, PnL = 1600m, BalanceAfter = 126600m, Timestamp = now.AddDays(-6) },
-                        new AccountTransaction { TransactionId = "T104", AccountId = 2, Type = "Sell", CurrencyPair = "AUD/USD", Lots = 1.5m, Rate = 0.6600m, PnL = 0, BalanceAfter = 126600m, Timestamp = now.AddDays(-5) },
-                        new AccountTransaction { TransactionId = "T105", AccountId = 2, Type = "Close Sell", CurrencyPair = "AUD/USD", Lots = 1.5m, Rate = 0.6545m, PnL = 825m, BalanceAfter = 127425m, Timestamp = now.AddDays(-4) },
-                        new AccountTransaction { TransactionId = "T106", AccountId = 2, Type = "Buy", CurrencyPair = "AUD/USD", Lots = 3.0m, Rate = 0.6490m, PnL = 0, BalanceAfter = 127425m, Timestamp = now.AddDays(-3) },
-                        new AccountTransaction { TransactionId = "T107", AccountId = 2, Type = "Close Buy", CurrencyPair = "AUD/USD", Lots = 3.0m, Rate = 0.6455m, PnL = -1050m, BalanceAfter = 126375m, Timestamp = now.AddDays(-2) },
-                        new AccountTransaction { TransactionId = "T108", AccountId = 2, Type = "Sell", CurrencyPair = "AUD/USD", Lots = 1.0m, Rate = 0.6580m, PnL = 0, BalanceAfter = 126375m, Timestamp = now.AddHours(-6) },
-                        new AccountTransaction { TransactionId = "T109", AccountId = 2, Type = "Buy", CurrencyPair = "AUD/USD", Lots = 0.3m, Rate = 0.6540m, PnL = 0, BalanceAfter = 126375m, Timestamp = now.AddHours(-2) }
+                        txList.Add(new AccountTransaction
+                        {
+                            TransactionId = $"T{h.Id}",
+                            AccountId = customer.Id,
+                            Type = h.Direction,
+                            CurrencyPair = h.CurrencyPair,
+                            Lots = h.Amount / 100000m,
+                            Rate = h.EntryRate,
+                            PnL = 0,
+                            BalanceAfter = balance,
+                            Timestamp = h.OpenedAt
+                        });
+
+                        balance += h.PnL;
+                        txList.Add(new AccountTransaction
+                        {
+                            TransactionId = $"TC{h.Id}",
+                            AccountId = customer.Id,
+                            Type = $"Close {h.Direction}",
+                            CurrencyPair = h.CurrencyPair,
+                            Lots = h.Amount / 100000m,
+                            Rate = h.ExitRate,
+                            PnL = h.PnL,
+                            BalanceAfter = balance,
+                            Timestamp = h.ClosedAt
+                        });
                     }
-                },
-                {
-                    3, new List<AccountTransaction>
-                    {
-                        new AccountTransaction { TransactionId = "T201", AccountId = 3, Type = "Deposit", CurrencyPair = "-", Lots = 0, Rate = 0, PnL = 0, BalanceAfter = 75000m, Timestamp = new DateTime(2024, 1, 20) },
-                        new AccountTransaction { TransactionId = "T202", AccountId = 3, Type = "Buy", CurrencyPair = "AUD/USD", Lots = 1.0m, Rate = 0.6510m, PnL = 0, BalanceAfter = 75000m, Timestamp = now.AddDays(-4) },
-                        new AccountTransaction { TransactionId = "T203", AccountId = 3, Type = "Close Buy", CurrencyPair = "AUD/USD", Lots = 1.0m, Rate = 0.6560m, PnL = 500m, BalanceAfter = 75500m, Timestamp = now.AddDays(-3) },
-                        new AccountTransaction { TransactionId = "T204", AccountId = 3, Type = "Sell", CurrencyPair = "AUD/USD", Lots = 0.5m, Rate = 0.6570m, PnL = 0, BalanceAfter = 75500m, Timestamp = now.AddDays(-2) },
-                        new AccountTransaction { TransactionId = "T205", AccountId = 3, Type = "Close Sell", CurrencyPair = "AUD/USD", Lots = 0.5m, Rate = 0.6530m, PnL = 200m, BalanceAfter = 75700m, Timestamp = now.AddDays(-1) },
-                        new AccountTransaction { TransactionId = "T206", AccountId = 3, Type = "Buy", CurrencyPair = "AUD/USD", Lots = 2.0m, Rate = 0.6545m, PnL = 0, BalanceAfter = 75700m, Timestamp = now.AddHours(-5) },
-                        new AccountTransaction { TransactionId = "T207", AccountId = 3, Type = "Close Buy", CurrencyPair = "AUD/USD", Lots = 2.0m, Rate = 0.6490m, PnL = -1100m, BalanceAfter = 74600m, Timestamp = now.AddHours(-3) }
-                    }
+
+                    account.Balance = balance;
+                    _transactions[customer.Id] = txList;
                 }
-            };
+
+                _logger.LogInformation("Loaded {Count} customer accounts from database", _accounts.Count);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load customer data from database");
+            }
         }
 
         private decimal CalculatePnL(Position pos, decimal currentRate)
@@ -180,6 +167,20 @@ namespace FxWebApi.Services
             return Math.Round((lots * 100000m * rate) / leverage, 2);
         }
 
+        private List<Position> GetPositions(int accountId)
+        {
+            if (!_positions.ContainsKey(accountId))
+                _positions[accountId] = new List<Position>();
+            return _positions[accountId];
+        }
+
+        private List<AccountTransaction> GetTransactions(int accountId)
+        {
+            if (!_transactions.ContainsKey(accountId))
+                _transactions[accountId] = new List<AccountTransaction>();
+            return _transactions[accountId];
+        }
+
         public List<AccountSummary> GetAllAccounts()
         {
             lock (_lock)
@@ -189,7 +190,7 @@ namespace FxWebApi.Services
 
                 foreach (var account in _accounts)
                 {
-                    var positions = _positions[account.Id];
+                    var positions = GetPositions(account.Id);
                     var openPnL = positions.Sum(p => CalculatePnL(p, currentRate));
 
                     summaries.Add(new AccountSummary
@@ -221,7 +222,7 @@ namespace FxWebApi.Services
                 if (account == null) return null;
 
                 var currentRate = _fxRateService.GetCurrentRate().Rate;
-                var positions = _positions[accountId];
+                var positions = GetPositions(accountId);
 
                 foreach (var pos in positions)
                 {
@@ -249,7 +250,7 @@ namespace FxWebApi.Services
                     FreeMargin = Math.Round(freeMargin, 2),
                     MarginLevel = margin > 0 ? Math.Round(marginLevel, 2) : 0,
                     OpenPositions = positions.ToList(),
-                    RecentTransactions = _transactions[accountId]
+                    RecentTransactions = GetTransactions(accountId)
                         .OrderByDescending(t => t.Timestamp)
                         .Take(10)
                         .ToList()
@@ -270,9 +271,10 @@ namespace FxWebApi.Services
 
                 var currentRate = _fxRateService.GetCurrentRate().Rate;
                 var margin = CalculateMargin(lots, currentRate, account.Leverage);
-                var openPnL = _positions[accountId].Sum(p => CalculatePnL(p, currentRate));
+                var acctPositions = GetPositions(accountId);
+                var openPnL = acctPositions.Sum(p => CalculatePnL(p, currentRate));
                 var equity = account.Balance + openPnL;
-                var usedMargin = _positions[accountId].Sum(p => p.Margin);
+                var usedMargin = acctPositions.Sum(p => p.Margin);
                 var freeMargin = equity - usedMargin;
 
                 if (margin > freeMargin)
@@ -292,9 +294,9 @@ namespace FxWebApi.Services
                     OpenTime = DateTime.UtcNow
                 };
 
-                _positions[accountId].Add(position);
+                GetPositions(accountId).Add(position);
 
-                _transactions[accountId].Add(new AccountTransaction
+                GetTransactions(accountId).Add(new AccountTransaction
                 {
                     TransactionId = $"T{DateTime.UtcNow.Ticks}",
                     AccountId = accountId,
@@ -320,10 +322,6 @@ namespace FxWebApi.Services
                     }
                 };
 
-                // Fire-and-forget settlement to Trading Platform
-                var notionalAmount = lots * 100000m;
-                NotifyTradingPlatformAsync(type, "AUD/USD", notionalAmount, currentRate);
-
                 return result;
             }
         }
@@ -336,18 +334,19 @@ namespace FxWebApi.Services
                 if (account == null)
                     return new FxTransactionResult { Success = false, Message = "Account not found" };
 
-                var position = _positions[accountId].FirstOrDefault(p => p.PositionId == positionId);
+                var closePositions = GetPositions(accountId);
+                var position = closePositions.FirstOrDefault(p => p.PositionId == positionId);
                 if (position == null)
                     return new FxTransactionResult { Success = false, Message = "Position not found" };
 
                 var currentRate = _fxRateService.GetCurrentRate().Rate;
                 var pnl = Math.Round(CalculatePnL(position, currentRate), 2);
 
-                _positions[accountId].Remove(position);
+                closePositions.Remove(position);
                 account.Balance += pnl;
 
                 var closeType = position.Type == "Buy" ? "Close Buy" : "Close Sell";
-                _transactions[accountId].Add(new AccountTransaction
+                GetTransactions(accountId).Add(new AccountTransaction
                 {
                     TransactionId = $"T{DateTime.UtcNow.Ticks}",
                     AccountId = accountId,
@@ -408,7 +407,7 @@ namespace FxWebApi.Services
                     var margin = CalculateMargin(notification.Lots, rate, account.Leverage);
 
                     // Add position
-                    _positions[account.Id].Add(new Position
+                    GetPositions(account.Id).Add(new Position
                     {
                         PositionId = $"POS{DateTime.UtcNow.Ticks}",
                         AccountId = account.Id,
@@ -423,7 +422,7 @@ namespace FxWebApi.Services
                     });
 
                     // Add transaction
-                    _transactions[account.Id].Add(new AccountTransaction
+                    GetTransactions(account.Id).Add(new AccountTransaction
                     {
                         TransactionId = notification.TransactionId,
                         AccountId = account.Id,
@@ -450,41 +449,5 @@ namespace FxWebApi.Services
             }
         }
 
-        private void NotifyTradingPlatformAsync(string type, string currencyPair, decimal amount, decimal rate)
-        {
-            var tradingPlatformUrl = _config["TradingPlatformUrl"];
-            if (string.IsNullOrWhiteSpace(tradingPlatformUrl)) return;
-
-            var settlement = new TradeSettlementRequest
-            {
-                Type = type,
-                CurrencyPair = currencyPair,
-                Amount = amount,
-                Rate = rate,
-                Total = Math.Round(amount * rate, 2),
-                Source = "BrokerCRM",
-                DateTime = DateTime.UtcNow
-            };
-
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    var client = _httpClientFactory.CreateClient();
-                    var json = JsonSerializer.Serialize(settlement);
-                    await client.PostAsync(
-                        $"{tradingPlatformUrl}/api/trades",
-                        new StringContent(json, Encoding.UTF8, "application/json"));
-                }
-                catch (Exception ex)
-                {
-                    // TODO: For production resilience, implement retry-with-backoff or a
-                    // dead-letter queue here to guarantee at-least-once delivery of trade
-                    // settlements to the Trading Platform.
-                    _logger.LogWarning(ex, "Failed to notify trading platform of trade settlement ({Type} {Amount} {Pair})",
-                        type, amount, currencyPair);
-                }
-            });
-        }
     }
 }

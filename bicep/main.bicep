@@ -270,8 +270,6 @@ module crmBrokerApp 'modules/webapp.bicep' = {
       { name: 'AzureAIFoundry__Deployment', value: azureAIFoundryDeployment }
       { name: 'AzureAIFoundry__TenantId', value: azureAIFoundryTenantId }
       { name: 'AzureStorage__AccountName', value: storageAccountName }
-      { name: 'IntegrationApiUrl', value: 'https://${baseName}-intg.azurewebsites.net' }
-      { name: 'TradingPlatformUrl', value: 'https://${baseName}-trading.azurewebsites.net' }
       { name: 'ConnectionStrings__FxDatabase', value: fabricDatabaseConnectionString }
     ]
   }
