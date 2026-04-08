@@ -19,6 +19,6 @@ public class IndexModel : PageModel
     public void OnGet(string? category)
     {
         SelectedCategory = string.IsNullOrEmpty(category) ? "All" : category;
-        Articles = _articles.GetPublished(SelectedCategory);
+        Articles = _articles.GetPublished(SelectedCategory).Take(9).ToList();
     }
 }
