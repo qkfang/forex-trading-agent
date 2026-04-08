@@ -104,11 +104,9 @@ body { background: var(--page-bg); color: var(--text); font-family: var(--font);
     letter-spacing: 0.5px;
     color: #000;
 }
-.cat-eur-usd           { background: #1a5276; }
-.cat-gbp-usd           { background: #512e5f; }
-.cat-usd-jpy           { background: #784212; }
 .cat-aud-usd           { background: #1e8449; }
-.cat-usd-chf           { background: #0e6655; }
+.cat-aud-cnh           { background: #1a5276; }
+.cat-aud-gbp           { background: #512e5f; }
 .cat-technical-analysis  { background: #2e4057; }
 .cat-fundamental-analysis{ background: #4a235a; }
 .cat-market-outlook      { background: #154360; }

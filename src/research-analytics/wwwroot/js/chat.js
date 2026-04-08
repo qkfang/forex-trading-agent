@@ -25,9 +25,9 @@
                 startScreen: {
                     greeting: 'FX Research Assistant',
                     prompts: [
-                        { label: 'Market outlook', prompt: 'What is the current market outlook for EUR/USD?' },
-                        { label: 'Trading strategy', prompt: 'What trading strategies work best in current conditions?' },
-                        { label: 'Currency analysis', prompt: 'Provide a technical analysis for USD/JPY.' }
+                        { label: 'Market outlook', prompt: 'What is the current market outlook for AUD/USD?' },
+                        { label: 'Trading strategy', prompt: 'What trading strategies work best for AUD/CNH?' },
+                        { label: 'Currency analysis', prompt: 'Provide a technical analysis for AUD/GBP.' }
                     ]
                 },
                 composer: { placeholder: 'Ask about market research...' }

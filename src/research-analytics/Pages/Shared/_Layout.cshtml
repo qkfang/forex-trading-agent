@@ -44,14 +44,9 @@
         <div class="container-xl">
             <div class="category-nav-inner">
                 <a class="cat-link @(ViewData["Category"]?.ToString() == "All" || ViewData["Category"] == null ? "active" : "")" href="/?category=All">All</a>
-                <a class="cat-link @(ViewData["Category"]?.ToString() == "EUR/USD" ? "active" : "")" href="/?category=EUR%2FUSD">EUR/USD</a>
-                <a class="cat-link @(ViewData["Category"]?.ToString() == "GBP/USD" ? "active" : "")" href="/?category=GBP%2FUSD">GBP/USD</a>
-                <a class="cat-link @(ViewData["Category"]?.ToString() == "USD/JPY" ? "active" : "")" href="/?category=USD%2FJPY">USD/JPY</a>
                 <a class="cat-link @(ViewData["Category"]?.ToString() == "AUD/USD" ? "active" : "")" href="/?category=AUD%2FUSD">AUD/USD</a>
-                <a class="cat-link @(ViewData["Category"]?.ToString() == "USD/CHF" ? "active" : "")" href="/?category=USD%2FCHF">USD/CHF</a>
-                <a class="cat-link @(ViewData["Category"]?.ToString() == "Technical Analysis" ? "active" : "")" href="/?category=Technical+Analysis">Technical</a>
-                <a class="cat-link @(ViewData["Category"]?.ToString() == "Fundamental Analysis" ? "active" : "")" href="/?category=Fundamental+Analysis">Fundamental</a>
-                <a class="cat-link @(ViewData["Category"]?.ToString() == "Market Outlook" ? "active" : "")" href="/?category=Market+Outlook">Outlook</a>
+                <a class="cat-link @(ViewData["Category"]?.ToString() == "AUD/CNH" ? "active" : "")" href="/?category=AUD%2FCNH">AUD/CNH</a>
+                <a class="cat-link @(ViewData["Category"]?.ToString() == "AUD/GBP" ? "active" : "")" href="/?category=AUD%2FGBP">AUD/GBP</a>
             </div>
         </div>
     </nav>
@@ -75,15 +70,6 @@
                         <li><a href="/?category=Technical+Analysis">Technical Analysis</a></li>
                         <li><a href="/?category=Fundamental+Analysis">Fundamental Analysis</a></li>
                         <li><a href="/?category=Market+Outlook">Market Outlook</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h6 class="footer-heading">Currency Pairs</h6>
-                    <ul class="footer-links">
-                        <li><a href="/?category=EUR%2FUSD">EUR/USD</a></li>
-                        <li><a href="/?category=GBP%2FUSD">GBP/USD</a></li>
-                        <li><a href="/?category=USD%2FJPY">USD/JPY</a></li>
-                        <li><a href="/?category=AUD%2FUSD">AUD/USD</a></li>
                     </ul>
                 </div>
             </div>
