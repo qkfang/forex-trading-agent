@@ -50,5 +50,6 @@ app.UseSwaggerUI();
 app.UseHttpsRedirection();
 app.MapControllers();
 app.MapMcp("/mcp");
+app.MapGet("/mcp", () => Results.Ok("MCP endpoint active. Use POST for JSON-RPC."));
 
 app.Run();
