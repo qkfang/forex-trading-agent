@@ -1,6 +1,7 @@
 [
   {
     "Id": 1,
+    "ReferenceNumber": "TXN-20240115-0001",
     "AccountId": "ACC001",
     "Type": "Buy",
     "CurrencyPair": "AUD/USD",
@@ -11,6 +12,7 @@
   },
   {
     "Id": 2,
+    "ReferenceNumber": "TXN-20240116-0002",
     "AccountId": "ACC002",
     "Type": "Sell",
     "CurrencyPair": "AUD/USD",
@@ -21,6 +23,7 @@
   },
   {
     "Id": 3,
+    "ReferenceNumber": "TXN-20240117-0003",
     "AccountId": "ACC001",
     "Type": "Buy",
     "CurrencyPair": "AUD/USD",
@@ -31,6 +34,7 @@
   },
   {
     "Id": 4,
+    "ReferenceNumber": "TXN-20240118-0004",
     "AccountId": "ACC002",
     "Type": "Sell",
     "CurrencyPair": "AUD/USD",
@@ -41,6 +45,7 @@
   },
   {
     "Id": 5,
+    "ReferenceNumber": "TXN-20240119-0005",
     "AccountId": "ACC001",
     "Type": "Buy",
     "CurrencyPair": "AUD/USD",
@@ -51,6 +56,7 @@
   },
   {
     "Id": 6,
+    "ReferenceNumber": "TXN-20260320-0006",
     "AccountId": "ACC002",
     "Type": "Sell",
     "CurrencyPair": "AUD/USD",
@@ -61,6 +67,7 @@
   },
   {
     "Id": 7,
+    "ReferenceNumber": "TXN-20260320-0007",
     "AccountId": "ACC001",
     "Type": "Sell",
     "CurrencyPair": "AUD/USD",
@@ -71,6 +78,7 @@
   },
   {
     "Id": 8,
+    "ReferenceNumber": "TXN-20260320-0008",
     "AccountId": "ACC002",
     "Type": "Sell",
     "CurrencyPair": "AUD/USD",
@@ -81,6 +89,7 @@
   },
   {
     "Id": 9,
+    "ReferenceNumber": "TXN-20260320-0009",
     "AccountId": "ACC001",
     "Type": "Sell",
     "CurrencyPair": "AUD/USD",
@@ -91,6 +100,7 @@
   },
   {
     "Id": 10,
+    "ReferenceNumber": "TXN-20260320-0010",
     "AccountId": "ACC002",
     "Type": "Sell",
     "CurrencyPair": "AUD/USD",
@@ -101,6 +111,7 @@
   },
   {
     "Id": 11,
+    "ReferenceNumber": "TXN-20260320-0011",
     "AccountId": "ACC001",
     "Type": "Sell",
     "CurrencyPair": "AUD/USD",
@@ -111,6 +122,7 @@
   },
   {
     "Id": 12,
+    "ReferenceNumber": "TXN-20260320-0012",
     "AccountId": "ACC002",
     "Type": "Buy",
     "CurrencyPair": "AUD/USD",
@@ -121,6 +133,7 @@
   },
   {
     "Id": 13,
+    "ReferenceNumber": "TXN-20260320-0013",
     "AccountId": "ACC001",
     "Type": "Buy",
     "CurrencyPair": "AUD/USD",
@@ -131,6 +144,7 @@
   },
   {
     "Id": 14,
+    "ReferenceNumber": "TXN-20260320-0014",
     "AccountId": "ACC002",
     "Type": "Sell",
     "CurrencyPair": "AUD/USD",
@@ -141,6 +155,7 @@
   },
   {
     "Id": 15,
+    "ReferenceNumber": "TXN-20260320-0015",
     "AccountId": "ACC001",
     "Type": "Buy",
     "CurrencyPair": "AUD/USD",
@@ -151,6 +166,7 @@
   },
   {
     "Id": 16,
+    "ReferenceNumber": "TXN-20260322-0016",
     "AccountId": "ACC002",
     "Type": "Buy",
     "CurrencyPair": "AUD/USD",
@@ -161,6 +177,7 @@
   },
   {
     "Id": 17,
+    "ReferenceNumber": "TXN-20260322-0017",
     "AccountId": "ACC001",
     "Type": "Buy",
     "CurrencyPair": "AUD/USD",

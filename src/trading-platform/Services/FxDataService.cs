@@ -85,6 +85,8 @@ namespace FxWebUI.Services
             {
                 transaction.Id = _transactions.Any() ? _transactions.Max(t => t.Id) + 1 : 1;
                 if (transaction.DateTime == default) transaction.DateTime = DateTime.UtcNow;
+                if (string.IsNullOrEmpty(transaction.ReferenceNumber))
+                    transaction.ReferenceNumber = $"TXN-{transaction.DateTime:yyyyMMdd}-{transaction.Id:D4}";
                 _transactions.Add(transaction);
 
                 // Update fund summary balances

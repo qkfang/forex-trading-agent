@@ -83,6 +83,7 @@
                     <thead>
                         <tr>
                             <th>#</th>
+                            <th>Ref</th>
                             <th>Type</th>
                             <th>Pair</th>
                             <th>Amount</th>
@@ -98,6 +99,7 @@
                             {
                                 <tr>
                                     <td>@transaction.Id</td>
+                                    <td>@transaction.ReferenceNumber</td>
                                     <td>
                                         <span class="badge @(transaction.Type == "Buy" ? "badge-buy" : "badge-sell")">
                                             @transaction.Type
@@ -496,6 +498,7 @@ function switchView(view) {
             var isGreen = type === 'Buy';
             html += '<tr>' +
                 '<td>' + (t.id || t.Id || '') + '</td>' +
+                '<td>' + (t.referenceNumber || t.ReferenceNumber || '') + '</td>' +
                 '<td><span class="badge ' + (isGreen ? 'badge-buy' : 'badge-sell') + '">' + type + '</span></td>' +
                 '<td>' + (t.currencyPair || t.CurrencyPair || '') + '</td>' +
                 '<td>$' + parseFloat(t.amount || t.Amount || 0).toFixed(2) + '</td>' +
