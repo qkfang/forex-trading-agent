@@ -227,15 +227,15 @@ app.MapPost("/api/admin/engage-agent/{id}", async (int id, ArticleService articl
         var client = httpClientFactory.CreateClient();
         var prompt = $"A new research article has been published. Title: {article.Title}. Content: {article.Content}";
         var payload = JsonSerializer.Serialize(new { message = prompt });
-        await client.PostAsync($"{agentUrl}/suggestion",
+        var response = await client.PostAsync($"{agentUrl}/suggestion",
             new StringContent(payload, Encoding.UTF8, "application/json"));
+        var responseBody = await response.Content.ReadAsStringAsync();
+        return Results.Ok(new { articleId = id, agentNotified = true, requestBody = payload, responseBody });
     }
     catch
     {
         return Results.Ok(new { articleId = id, agentNotified = false });
     }
-
-    return Results.Ok(new { articleId = id, agentNotified = true });
 });
 
 // API: ChatKit protocol endpoint (openai/chatkit-js self-hosted backend)

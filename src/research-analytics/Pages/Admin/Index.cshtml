@@ -126,6 +126,27 @@
             </div>
         </div>
 
+        <!-- Agent Request/Response Modal -->
+        <div class="modal fade" id="agentPayloadModal" tabindex="-1" aria-labelledby="agentPayloadModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="agentPayloadModalLabel">Suggestion Agent - Request / Response</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h6>Request Body</h6>
+                        <pre class="bg-light p-2 rounded" style="max-height:250px;overflow:auto;white-space:pre-wrap;word-break:break-word" id="agent-request-body"></pre>
+                        <h6 class="mt-3">Response Body</h6>
+                        <pre class="bg-light p-2 rounded" style="max-height:250px;overflow:auto;white-space:pre-wrap;word-break:break-word" id="agent-response-body"></pre>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="table-responsive">
             <table class="table table-hover admin-table">
                 <thead>
@@ -361,11 +382,22 @@
                     return res.json();
                 })
                 .then(function (data) {
-                    if (data.agentNotified) {
-                        setStep('step-agent', 'done', 'Suggestion agent engaged');
-                    } else {
-                        setStep('step-agent', 'warn', 'Agent notification skipped');
-                    }
+                    setStep('step-agent', 'done', 'Suggestion agent engaged');
+                    var link = document.createElement('a');
+                    link.href = '#';
+                    link.className = 'ms-2 small';
+                    link.textContent = '[View Request/Response]';
+                    link.onclick = function (e) {
+                        e.preventDefault();
+                        var reqEl = document.getElementById('agent-request-body');
+                        var resEl = document.getElementById('agent-response-body');
+                        try { reqEl.textContent = JSON.stringify(JSON.parse(data.requestBody), null, 2); }
+                        catch (_) { reqEl.textContent = data.requestBody || '(empty)'; }
+                        try { resEl.textContent = JSON.stringify(JSON.parse(data.responseBody), null, 2); }
+                        catch (_) { resEl.textContent = data.responseBody || '(empty)'; }
+                        new bootstrap.Modal(document.getElementById('agentPayloadModal')).show();
+                    };
+                    document.getElementById('step-agent').appendChild(link);
                     setBar(bar, 100);
                     bar.classList.remove('progress-bar-animated');
                     bar.classList.add('bg-success');

@@ -68,15 +68,26 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/tracker.js" asp-append-version="true"></script>
-    <script src="https://cdn.platform.openai.com/deployments/chatkit/chatkit.js" async></script>
     @await RenderSectionAsync("Scripts", required: false)
 
-    <!-- Chat Widget (openai/chatkit-js) -->
+    <!-- Chat Widget -->
     <button id="chatkit-toggle" class="chatkit-float-btn" title="Ask Research Assistant">
         <i class="fa-solid fa-comments"></i>
     </button>
     <div id="chatkit-panel" class="chatkit-float-panel">
-        <openai-chatkit id="research-chatkit"></openai-chatkit>
+        <div class="chatkit-header">
+            <span>FX Research Assistant</span>
+        </div>
+        <div id="chatkit-messages" class="chatkit-messages"></div>
+        <div id="chatkit-prompts" class="chatkit-prompts">
+            <button class="chatkit-prompt-btn" data-prompt="What is the current market outlook for AUD/USD?">Market outlook</button>
+            <button class="chatkit-prompt-btn" data-prompt="What trading strategies work best for AUD/CNH?">Trading strategy</button>
+            <button class="chatkit-prompt-btn" data-prompt="Provide a technical analysis for AUD/GBP.">Currency analysis</button>
+        </div>
+        <form id="chatkit-form" class="chatkit-input">
+            <input id="chatkit-input" type="text" placeholder="Ask about market research..." autocomplete="off" />
+            <button type="submit"><i class="fa-solid fa-paper-plane"></i></button>
+        </form>
     </div>
     <script src="~/js/chat.js" asp-append-version="true"></script>
 </body>

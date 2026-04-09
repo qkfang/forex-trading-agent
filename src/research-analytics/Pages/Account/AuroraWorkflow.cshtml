@@ -628,6 +628,92 @@
         .log-success { color: var(--green); }
         .log-info { color: var(--gold); }
         .log-warn { color: var(--working); }
+        .log-link { color: var(--accent); cursor: pointer; text-decoration: underline; margin-left: 6px; font-size: 10px; }
+        .log-link:hover { color: white; }
+
+        /* Agent Payload Modal */
+        .agent-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+        .agent-modal-overlay.visible { display: flex; }
+        .agent-modal {
+            background: var(--panel);
+            border: 1px solid var(--border2);
+            border-radius: 6px;
+            width: 680px;
+            max-width: 90vw;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+        .agent-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            background: var(--panel2);
+            border-radius: 6px 6px 0 0;
+        }
+        .agent-modal-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--gold);
+            letter-spacing: 0.5px;
+        }
+        .agent-modal-close {
+            background: none;
+            border: 1px solid var(--border2);
+            color: var(--text-muted);
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 3px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .agent-modal-close:hover { color: white; border-color: var(--text-muted); }
+        .agent-modal-body {
+            padding: 16px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .agent-modal-section {
+            margin-bottom: 14px;
+        }
+        .agent-modal-section-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        .agent-modal-pre {
+            background: #0a0e14;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 10px 12px;
+            font-family: 'Cascadia Code', 'Fira Code', monospace;
+            font-size: 11px;
+            color: var(--text);
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 240px;
+            overflow-y: auto;
+            line-height: 1.5;
+        }
+        .agent-modal-pre::-webkit-scrollbar { width: 4px; }
+        .agent-modal-pre::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
         /* spinner */
         .spin {
@@ -1310,7 +1396,7 @@
             tradeData.lots = parseFloat(document.getElementById('lotsInput').value) || 0.10;
             const rate = tradeData.action === 'Buy' ? tradeData.ask : tradeData.bid;
             tradeData.rate = rate || tradeData.rate;
-            const notional = Math.round(tradeData.lots * 100000 * tradeData.rate);
+            const notional = Math.round(tradeData.lots * 150000 * tradeData.rate);
 
             document.getElementById('approvalCustomer').textContent = tradeData.customer;
             const aEl = document.getElementById('approvalAction');
@@ -1318,7 +1404,7 @@
             aEl.className = 'wo-value ' + (tradeData.action === 'Buy' ? 'buy' : 'sell');
             document.getElementById('approvalPair').textContent = tradeData.pair;
             document.getElementById('approvalRate').textContent = tradeData.rate ? tradeData.rate.toFixed(5) : '—';
-            document.getElementById('approvalLots').textContent = tradeData.lots.toFixed(2) + ' lots';
+            document.getElementById('approvalLots').textContent = tradeData.lots.toFixed(2) + ' lots (' + (tradeData.lots * 150000).toLocaleString() + ' units)';
             document.getElementById('approvalNotional').textContent = notional ? '$' + notional.toLocaleString() : '—';
         }
 
@@ -1333,7 +1419,7 @@
             await sleep(300);
             addLog(logs, 'success', 'Connection established');
             await sleep(200);
-            addLog(logs, 'info', `Submitting ${tradeData.action} ${tradeData.lots} lots ${tradeData.pair}...`);
+            addLog(logs, 'info', `Submitting ${tradeData.action} ${tradeData.lots} lots (${(tradeData.lots * 150000).toLocaleString()} units) ${tradeData.pair}...`);
             await sleep(300);
             addLog(logs, 'info', 'Order routed to liquidity provider...');
             await sleep(400);
@@ -1352,10 +1438,13 @@
 
                 const outputText = await agentRes.text();
 
+                tradeData.lastAgentRequest = tradePrompt;
+                tradeData.lastAgentResponse = outputText;
+
                 addLog(logs, 'success', '✓ Trading agent confirmed transaction');
                 if (outputText && typeof outputText === 'string') {
                     tradeData.agentResponse = outputText;
-                    addLog(logs, 'info', 'Agent: ' + outputText.substring(0, 200));
+                    addLog(logs, 'info', 'Agent: ' + outputText.substring(0, 200) + ' <a class="log-link" onclick="openAgentModal()">View Payload</a>');
                 }
             } catch (agentErr) {
                 addLog(logs, 'warn', 'Trading agent unavailable — trade still recorded');
@@ -1371,7 +1460,7 @@
 
         // ── Step 5 ─────────────────────────────────────────────
         function showResult() {
-            const notional = Math.round(tradeData.lots * 100000 * tradeData.rate);
+            const notional = Math.round(tradeData.lots * 150000 * tradeData.rate);
             document.getElementById('resultDetails').innerHTML = `
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
                     <div style="background:var(--panel2);border:1px solid var(--border);border-radius:3px;padding:8px 10px;">
@@ -1388,7 +1477,7 @@
                     </div>
                     <div style="background:var(--panel2);border:1px solid var(--border);border-radius:3px;padding:8px 10px;">
                         <div class="wo-label">Qty</div>
-                        <div class="wo-value">${tradeData.lots} lots</div>
+                        <div class="wo-value">${tradeData.lots} lots (${(tradeData.lots * 150000).toLocaleString()} units)</div>
                     </div>
                     <div style="background:var(--panel2);border:1px solid var(--border);border-radius:3px;padding:8px 10px;grid-column:span 2;">
                         <div class="wo-label">Transaction ID</div>
@@ -1408,7 +1497,7 @@
             addLog(logs, 'info', 'Connecting to CRM...');
             await sleep(200);
 
-            const notional = Math.round(tradeData.lots * 100000 * tradeData.rate);
+            const notional = Math.round(tradeData.lots * 150000 * tradeData.rate);
             const payload = {
                 transactionId: tradeData.transactionId || ('TXN-' + Date.now()),
                 customerName: tradeData.customer,
@@ -1471,7 +1560,7 @@
                         </div>
                         <div class="wo-item">
                             <div class="wo-label">Qty</div>
-                            <div class="wo-value">${(tradeData.lots * 1000000).toLocaleString()}</div>
+                            <div class="wo-value">${(tradeData.lots * 150000).toLocaleString()}</div>
                         </div>
                         <div class="wo-item">
                             <div class="wo-label">Avg Px</div>
@@ -1496,7 +1585,37 @@
             container.scrollTop = container.scrollHeight;
         }
 
+        function openAgentModal() {
+            document.getElementById('agentReqBody').textContent = tradeData.lastAgentRequest || '(no request captured)';
+            document.getElementById('agentResBody').textContent = tradeData.lastAgentResponse || '(no response captured)';
+            document.getElementById('agentPayloadModal').classList.add('visible');
+        }
+
+        function closeAgentModal() {
+            document.getElementById('agentPayloadModal').classList.remove('visible');
+        }
+
         function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
     </script>
+
+    <!-- Agent Request/Response Modal -->
+    <div class="agent-modal-overlay" id="agentPayloadModal" onclick="if(event.target===this)closeAgentModal()">
+        <div class="agent-modal">
+            <div class="agent-modal-header">
+                <span class="agent-modal-title"><i class="fa-solid fa-robot"></i>&nbsp; Agent Request / Response</span>
+                <button class="agent-modal-close" onclick="closeAgentModal()">&times;</button>
+            </div>
+            <div class="agent-modal-body">
+                <div class="agent-modal-section">
+                    <div class="agent-modal-section-title">Request Body</div>
+                    <pre class="agent-modal-pre" id="agentReqBody"></pre>
+                </div>
+                <div class="agent-modal-section">
+                    <div class="agent-modal-section-title">Response Body</div>
+                    <pre class="agent-modal-pre" id="agentResBody"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
