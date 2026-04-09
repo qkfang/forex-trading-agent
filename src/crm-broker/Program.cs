@@ -1,8 +1,11 @@
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using FxWebApi.Data;
 using FxWebApi.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddOpenTelemetry().UseAzureMonitor();
 
 // Add services to the container.
 builder.Services.AddControllers();

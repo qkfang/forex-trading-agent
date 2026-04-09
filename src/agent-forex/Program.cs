@@ -1,17 +1,17 @@
 using Azure.AI.Projects;
 using Azure.AI.Projects.Agents;
 using Azure.Identity;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using FxAgent.Agents;
 using OpenAI.Responses;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddApplicationInsightsTelemetry();
+builder.Services.AddOpenTelemetry().UseAzureMonitor();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
-builder.Logging.AddApplicationInsights();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

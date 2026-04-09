@@ -1,3 +1,4 @@
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using FxWebPortal.Models;
 using FxWebPortal.Services;
 using System.Text;
@@ -8,6 +9,8 @@ using Azure.Identity;
 using OpenAI.Responses;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddOpenTelemetry().UseAzureMonitor();
 
 builder.Services.AddRazorPages();
 builder.Services.AddSession(options =>

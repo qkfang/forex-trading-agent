@@ -1,6 +1,9 @@
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using FxWebNews.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddOpenTelemetry().UseAzureMonitor();
 
 // Add services to the container.
 builder.Services.AddRazorPages();

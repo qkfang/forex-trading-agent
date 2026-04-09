@@ -30,7 +30,13 @@ namespace FxWebNews.Services
 
             try
             {
-                await using var producerClient = new EventHubProducerClient(fullyQualifiedNamespace, eventHubName, new DefaultAzureCredential());
+                var tenantId = _config["EventHub:TenantId"];
+                var credentialOptions = new DefaultAzureCredentialOptions();
+                if (!string.IsNullOrWhiteSpace(tenantId))
+                {
+                    credentialOptions.TenantId = tenantId;
+                }
+                await using var producerClient = new EventHubProducerClient(fullyQualifiedNamespace, eventHubName, new DefaultAzureCredential(credentialOptions));
 
                 using EventDataBatch eventBatch = await producerClient.CreateBatchAsync();
 

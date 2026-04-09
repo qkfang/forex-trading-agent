@@ -1,4 +1,4 @@
-# Launch all 4 web apps and open browser windows in a 2x2 grid
+# Launch all 6 apps: api-intg and agent-forex (no browser), then 4 web apps with browser in 2x2 grid
 
 # Add Win32 API for window positioning (guard against re-definition)
 if (-not ([System.Management.Automation.PSTypeName]'Win32Grid').Type) {
@@ -36,18 +36,59 @@ public class Win32Grid {
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 
-# App definitions: name, path, URL
-$apps = @(
-    @{ Name = "news-feed";           Path = "$repoRoot\src\news-feed";           Url = "http://localhost:5142" },
-    @{ Name = "research-analytics";  Path = "$repoRoot\src\research-analytics";  Url = "http://localhost:5003" },
-    @{ Name = "crm-broker";   Path = "$repoRoot\src\crm-broker";   Url = "http://localhost:5269" },
-    @{ Name = "trading-platform";    Path = "$repoRoot\src\trading-platform";    Url = "http://localhost:5249" }
+# Background apps (no browser)
+$bgApps = @(
+    @{ Name = "api-intg";      Path = "$repoRoot\src\api-intg";      Url = "http://localhost:5005" },
+    @{ Name = "agent-forex";   Path = "$repoRoot\src\agent-forex";   Url = "http://localhost:5001" }
 )
 
+# Browser apps
+$apps = @(
+    @{ Name = "news-feed";           Path = "$repoRoot\src\news-feed";           Url = "http://localhost:5142" },
+    @{ Name = "trading-platform";    Path = "$repoRoot\src\trading-platform";    Url = "http://localhost:5249" },
+    @{ Name = "crm-broker";          Path = "$repoRoot\src\crm-broker";          Url = "http://localhost:5269" },
+    @{ Name = "research-analytics";  Path = "$repoRoot\src\research-analytics";  Url = "http://localhost:5003" }
+)
+
+$allApps = $bgApps + $apps
 $dotnetProcesses = @()
 
-Write-Host "Starting all 4 web apps..." -ForegroundColor Cyan
+Write-Host "Starting all 6 apps..." -ForegroundColor Cyan
 
+# Start background apps first
+foreach ($app in $bgApps) {
+    Write-Host "  Starting $($app.Name) at $($app.Url)..." -ForegroundColor Yellow
+    $proc = Start-Process -FilePath "dotnet" `
+        -ArgumentList "run", "--project", $app.Path `
+        -PassThru -WindowStyle Minimized
+    $dotnetProcesses += $proc
+}
+
+# Wait for background apps to be ready before starting browser apps
+Write-Host "`nWaiting for background apps..." -ForegroundColor Cyan
+$maxWait = 60
+foreach ($app in $bgApps) {
+    $uri = [System.Uri]$app.Url
+    $ready = $false
+    for ($i = 0; $i -lt $maxWait; $i++) {
+        try {
+            $tcp = New-Object System.Net.Sockets.TcpClient
+            $tcp.Connect($uri.Host, $uri.Port)
+            $tcp.Close()
+            $ready = $true
+            break
+        } catch {
+            Start-Sleep -Seconds 1
+        }
+    }
+    if ($ready) {
+        Write-Host "  $($app.Name) is ready" -ForegroundColor Green
+    } else {
+        Write-Host "  $($app.Name) did not respond within ${maxWait}s (may still be starting)" -ForegroundColor Red
+    }
+}
+
+# Start browser apps
 foreach ($app in $apps) {
     Write-Host "  Starting $($app.Name) at $($app.Url)..." -ForegroundColor Yellow
     $proc = Start-Process -FilePath "dotnet" `
@@ -56,9 +97,8 @@ foreach ($app in $apps) {
     $dotnetProcesses += $proc
 }
 
-# Wait for apps to be ready (TCP port check — avoids triggering slow page renders)
-Write-Host "`nWaiting for apps to start..." -ForegroundColor Cyan
-$maxWait = 60
+# Wait for browser apps to be ready
+Write-Host "`nWaiting for browser apps..." -ForegroundColor Cyan
 foreach ($app in $apps) {
     $uri = [System.Uri]$app.Url
     $ready = $false
@@ -176,8 +216,8 @@ if (-not (Test-Path $chromePath)) {
 
 Write-Host "`nAll apps launched! Press Ctrl+C to stop." -ForegroundColor Cyan
 Write-Host "Process IDs:" -ForegroundColor Gray
-for ($i = 0; $i -lt $apps.Count; $i++) {
-    Write-Host "  $($apps[$i].Name): PID $($dotnetProcesses[$i].Id)" -ForegroundColor Gray
+for ($i = 0; $i -lt $allApps.Count; $i++) {
+    Write-Host "  $($allApps[$i].Name): PID $($dotnetProcesses[$i].Id)" -ForegroundColor Gray
 }
 
 # Wait and clean up on Ctrl+C

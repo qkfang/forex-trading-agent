@@ -193,5 +193,18 @@
     "IsPublished": true,
     "PublishedAt": "2026-04-06T09:21:54.9665176Z",
     "Source": "FX News Centre"
+  },
+  {
+    "Id": 16,
+    "Title": "AUD/USD Climbs on Strong Employment Data",
+    "Summary": "Australian dollar gains as jobless rate drops to decade low",
+    "Content": "The Australian dollar jumped 1.2% to 0.6680 following robust employment figures that showed unemployment falling to 3.5%, a 10-year low. The strong labor market data has reduced expectations for near-term rate cuts by the Reserve Bank of Australia, providing support for the currency.",
+    "Type": "Good",
+    "Category": "FX",
+    "PublishedDate": "2026-04-09T09:59:20.20888Z",
+    "Author": "FX News Team",
+    "IsPublished": true,
+    "PublishedAt": "2026-04-09T09:59:35.5517076Z",
+    "Source": "FX News Centre"
   }
 ]
