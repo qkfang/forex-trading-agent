@@ -47,9 +47,22 @@ app.UseCors();
 app.UseSwagger();
 app.UseSwaggerUI();
 
+// Normalize Accept header for MCP requests from Foundry agent server
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/mcp"))
+    {
+        var accept = context.Request.Headers.Accept.ToString();
+        if (string.IsNullOrEmpty(accept) || !accept.Contains("text/event-stream"))
+        {
+            context.Request.Headers.Accept = "application/json, text/event-stream";
+        }
+    }
+    await next();
+});
+
 app.UseHttpsRedirection();
 app.MapControllers();
 app.MapMcp("/mcp");
-app.MapGet("/mcp", () => Results.Ok("MCP endpoint active. Use POST for JSON-RPC."));
 
 app.Run();
