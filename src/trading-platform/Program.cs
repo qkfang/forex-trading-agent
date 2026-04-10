@@ -78,5 +78,6 @@ app.MapGet("/api/trades", (FxDataService fxData) =>
 app.MapControllers();
 app.MapRazorPages();
 app.MapMcp("/mcp");
+app.MapGet("/mcp", () => Results.Ok("MCP endpoint active. Use POST for JSON-RPC."));
 
 app.Run();
