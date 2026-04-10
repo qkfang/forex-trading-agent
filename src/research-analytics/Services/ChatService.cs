@@ -27,6 +27,7 @@ public class ChatService
         var payload = new { message = userMessage, temperature };
         var json = JsonSerializer.Serialize(payload);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
+        _logger.LogInformation("Request content: {Content}", json);
 
         try
         {
