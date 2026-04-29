@@ -1,7 +1,7 @@
 $SearchServiceName = "fxag-search"
 $ResourceGroupName = "rg-fx-agent"
 $IndexPrefix = "fx"
-$FoundryEndpoint = "https://fxag-foundry.services.ai.azure.com"
+$FoundryEndpoint = "https://fxag-foundry.openai.azure.com"
 
 $ErrorActionPreference = "Stop"
 
@@ -75,7 +75,7 @@ $knowledgeIndexDef = @{
         @{ name = "service"; type = "Edm.String"; filterable = $true; facetable = $true }
         @{ name = "tags"; type = "Collection(Edm.String)"; searchable = $true; filterable = $true; facetable = $true }
         @{ name = "lastUpdated"; type = "Edm.DateTimeOffset"; filterable = $true; sortable = $true }
-        @{ name = "contentVector"; type = "Collection(Edm.Single)"; searchable = $true; dimensions = 1536; vectorSearchProfile = "vector-profile-knowledge" }
+        @{ name = "contentVector"; type = "Collection(Edm.Single)"; searchable = $true; dimensions = 3072; vectorSearchProfile = "vector-profile-knowledge" }
     )
     vectorSearch = @{
         algorithms = @(
@@ -103,8 +103,8 @@ $knowledgeIndexDef = @{
                 kind = "azureOpenAI"
                 azureOpenAIParameters = @{
                     resourceUri = $FoundryEndpoint
-                    deploymentId = "text-embedding-ada-002"
-                    modelName = "text-embedding-ada-002"
+                    deploymentId = "text-embedding-3-large"
+                    modelName = "text-embedding-3-large"
                 }
             }
         )
@@ -146,7 +146,7 @@ $serviceDocIndexDef = @{
         @{ name = "owner"; type = "Edm.String"; filterable = $true }
         @{ name = "tags"; type = "Collection(Edm.String)"; searchable = $true; filterable = $true; facetable = $true }
         @{ name = "lastUpdated"; type = "Edm.DateTimeOffset"; filterable = $true; sortable = $true }
-        @{ name = "descriptionVector"; type = "Collection(Edm.Single)"; searchable = $true; dimensions = 1536; vectorSearchProfile = "vector-profile-service-doc" }
+        @{ name = "descriptionVector"; type = "Collection(Edm.Single)"; searchable = $true; dimensions = 3072; vectorSearchProfile = "vector-profile-service-doc" }
     )
     vectorSearch = @{
         algorithms = @(
@@ -174,8 +174,8 @@ $serviceDocIndexDef = @{
                 kind = "azureOpenAI"
                 azureOpenAIParameters = @{
                     resourceUri = $FoundryEndpoint
-                    deploymentId = "text-embedding-ada-002"
-                    modelName = "text-embedding-ada-002"
+                    deploymentId = "text-embedding-3-large"
+                    modelName = "text-embedding-3-large"
                 }
             }
         )

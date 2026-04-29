@@ -147,6 +147,39 @@ resource userOpenAIUserRole 'Microsoft.Authorization/roleAssignments@2022-04-01'
   }
 }]
 
+resource searchOpenAIUserRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(foundryAccount.id, aiSearchService.id, cognitiveServicesOpenAIUserRoleId)
+  scope: foundryAccount
+  dependsOn: [azureFoundry]
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', cognitiveServicesOpenAIUserRoleId)
+    principalId: aiSearchService.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource searchCogServicesUserRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(foundryAccount.id, aiSearchService.id, cognitiveServicesUserRoleId)
+  scope: foundryAccount
+  dependsOn: [azureFoundry]
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', cognitiveServicesUserRoleId)
+    principalId: aiSearchService.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource searchAIUserRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(foundryAccount.id, aiSearchService.id, azureAIUserRoleId)
+  scope: foundryAccount
+  dependsOn: [azureFoundry]
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', azureAIUserRoleId)
+    principalId: aiSearchService.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
 resource webAppCogServicesUserRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(foundryAccount.id, agentWebAppName, cognitiveServicesUserRoleId)
   scope: foundryAccount
