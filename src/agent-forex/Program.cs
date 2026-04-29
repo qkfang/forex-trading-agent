@@ -62,6 +62,30 @@ var tradingTool = ResponseTool.CreateMcpTool(
 
 var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
 
+// Configure Azure AI Search tool for FxAgResearch
+var searchConnectionName = app.Configuration["AZURE_AI_SEARCH_CONNECTION_NAME"];
+var searchIndexName = app.Configuration["AZURE_AI_SEARCH_INDEX_NAME"];
+Action<DeclarativeAgentDefinition>? researchSearchConfig = null;
+if (!string.IsNullOrEmpty(searchConnectionName) && !string.IsNullOrEmpty(searchIndexName))
+{
+    var searchConnection = aiProjectClient.Connections.GetConnection(searchConnectionName);
+    researchSearchConfig = agentDef => agentDef.Tools.Add(new AzureAISearchTool(new AzureAISearchToolOptions(
+    [
+        new AzureAISearchToolIndex
+        {
+            ProjectConnectionId = searchConnection.Id,
+            IndexName = searchIndexName,
+            QueryType = AzureAISearchQueryType.Simple,
+            TopK = 5
+        }
+    ])));
+    logger.LogInformation("Azure AI Search tool configured for FxAgResearch with connection: {ConnectionName}, index: {IndexName}", searchConnectionName, searchIndexName);
+}
+else
+{
+    logger.LogWarning("AZURE_AI_SEARCH_CONNECTION_NAME or AZURE_AI_SEARCH_INDEX_NAME is not set. FxAgResearch will run without AI Search.");
+}
+
 // Configure Fabric data agent tool for FxAgInsight
 var fabricConnectionName = app.Configuration["FABRIC_CONNECTION_NAME"];
 Action<DeclarativeAgentDefinition>? insightFabricConfig = null;
@@ -84,11 +108,13 @@ var researchAgent = new FxAgResearch(
     aiProjectClient,
     deploymentName,
     [apiIntgTool, webSearchTool],
+    researchSearchConfig,
     loggerFactory.CreateLogger<FxAgResearch>()
 );
 var suggestionAgent = new FxAgSuggestion(aiProjectClient, deploymentName, [apiIntgTool], loggerFactory.CreateLogger<FxAgSuggestion>());
 var insightAgent = new FxAgInsight(aiProjectClient, deploymentName, [apiIntgTool], insightFabricConfig, loggerFactory.CreateLogger<FxAgInsight>());
 var traderAgent = new FxAgTrader(aiProjectClient, deploymentName, [tradingTool], loggerFactory.CreateLogger<FxAgTrader>());
+var ingestionAgent = new FxAgIngestion(aiProjectClient, loggerFactory.CreateLogger<FxAgIngestion>());
 
 app.MapPost("/research", async (ChatRequest request) =>
 {
@@ -115,6 +141,13 @@ app.MapPost("/insight", async (ChatRequest request) =>
 {
     logger.LogInformation("Insight request: {Message}", request.Message);
     var response = await insightAgent.RunAsync(request.Message);
+    return Results.Ok(new { response });
+});
+
+app.MapPost("/ingestion", async (ChatRequest request) =>
+{
+    logger.LogInformation("Ingestion request: {Message}", request.Message);
+    var response = await ingestionAgent.RunAsync(request.Message);
     return Results.Ok(new { response });
 });
 

@@ -105,3 +105,5 @@ output deploymentName string = gpt4oDeployment.name
 output projectName string = aiProject.name
 output location string = location
 output fabricConnectionName string = fabricConnection.name
+output principalId string = aiHub.identity.principalId
+output projectPrincipalId string = aiProject.identity.principalId

@@ -10,6 +10,9 @@ param azureAIFoundryTenantId string = '9d2116ce-afe6-4ce8-8bc3-c7c7b69856c2'
 
 param fabricDatabaseConnectionString string = 'Data Source=zylcdhpgv7uezc6dy7d3ngcwyi-b5l3uoo37ijuxbntne4gq2ska4.database.fabric.microsoft.com,1433;Initial Catalog=fx_data_sqldb-af3802bf-c4ca-4c83-aa5a-366c574104d4;Multiple Active Result Sets=False;Connect Timeout=30;Encrypt=True;Trust Server Certificate=False;Authentication=Active Directory Default'
 
+@description('Name of an existing Azure AI Search service to grant Foundry access to')
+param aiSearchName string = '${baseName}-search'
+
 
 var eventHubFullyQualifiedNamespace = 'esehsyw4hwncugmy8frez7.servicebus.windows.net'
 var eventHubName = 'es_fa73e095-515c-48fd-ad54-1ef70ad7bc34'
@@ -225,6 +228,78 @@ resource researchAppAIDeveloperRole 'Microsoft.Authorization/roleAssignments@202
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', azureAIDeveloperRoleId)
     principalId: researchAnalyticsApp.outputs.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// Azure AI Search service for Foundry knowledge/document indexes
+resource aiSearchService 'Microsoft.Search/searchServices@2023-11-01' = {
+  name: aiSearchName
+  location: location
+  tags: commonTags
+  sku: {
+    name: 'basic'
+  }
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    replicaCount: 1
+    partitionCount: 1
+    hostingMode: 'default'
+    publicNetworkAccess: 'enabled'
+    authOptions: {
+      aadOrApiKey: {
+        aadAuthFailureMode: 'http401WithBearerChallenge'
+      }
+    }
+    semanticSearch: 'free'
+  }
+}
+
+var searchIndexDataContributorRoleId = '8ebe5a00-799e-43f5-93ac-243d3dce84a7'
+var searchServiceContributorRoleId = '7ca78c08-252a-4471-8644-bb5ff32d4ba0'
+
+resource foundrySearchIndexDataContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(aiSearchService.id, foundryName, searchIndexDataContributorRoleId)
+  scope: aiSearchService
+  dependsOn: [azureFoundry, aiSearchService]
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', searchIndexDataContributorRoleId)
+    principalId: azureFoundry.outputs.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource foundrySearchServiceContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(aiSearchService.id, foundryName, searchServiceContributorRoleId)
+  scope: aiSearchService
+  dependsOn: [azureFoundry, aiSearchService]
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', searchServiceContributorRoleId)
+    principalId: azureFoundry.outputs.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource foundryProjectSearchIndexDataContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(aiSearchService.id, '${foundryName}-project', searchIndexDataContributorRoleId)
+  scope: aiSearchService
+  dependsOn: [azureFoundry, aiSearchService]
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', searchIndexDataContributorRoleId)
+    principalId: azureFoundry.outputs.projectPrincipalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource foundryProjectSearchServiceContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(aiSearchService.id, '${foundryName}-project', searchServiceContributorRoleId)
+  scope: aiSearchService
+  dependsOn: [azureFoundry, aiSearchService]
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', searchServiceContributorRoleId)
+    principalId: azureFoundry.outputs.projectPrincipalId
     principalType: 'ServicePrincipal'
   }
 }
