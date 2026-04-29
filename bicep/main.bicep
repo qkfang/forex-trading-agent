@@ -111,6 +111,7 @@ module azureFoundry 'modules/foundry.bicep' = {
     tags: commonTags
     aiSearchEndpoint: 'https://${aiSearchService.name}.search.windows.net'
     aiSearchResourceId: aiSearchService.id
+    knowledgeBaseName: 'fx-kb'
   }
 }
 

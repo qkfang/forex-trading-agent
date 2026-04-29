@@ -3,6 +3,7 @@ param location string
 param tags object = {}
 param aiSearchEndpoint string = ''
 param aiSearchResourceId string = ''
+param knowledgeBaseName string = ''
 
 resource aiHub 'Microsoft.CognitiveServices/accounts@2025-10-01-preview' = {
   name: name
@@ -76,26 +77,17 @@ resource fabricConnection 'Microsoft.CognitiveServices/accounts/connections@2025
   }
 }
 
-resource fabricProjectConnection 'Microsoft.CognitiveServices/accounts/projects/connections@2025-10-01-preview' = {
-  parent: aiProject
-  name: 'fabric-data-agent-project'
+resource kbMcpConnection 'Microsoft.CognitiveServices/accounts/connections@2025-10-01-preview' = {
+  parent: aiHub
+  name: 'ai-search-${knowledgeBaseName}'
   properties: {
-    authType: 'CustomKeys'
-    category: 'CustomKeys'
-    target: '-'
-    useWorkspaceManagedIdentity: false
-    isSharedToAll: false
-    sharedUserList: []
-    peRequirement: 'NotRequired'
-    peStatus: 'NotApplicable'
-    credentials: {
-      keys: {
-      'workspace-id': '39ba570f-fadb-4b13-85b3-6938686a4a07'
-      'artifact-id': '52e38886-b47c-48f5-9e14-157b0b9f1245'
-      }
-    }
+    authType: 'ProjectManagedIdentity'
+    category: 'RemoteTool'
+    target: '${aiSearchEndpoint}/knowledgebases/${knowledgeBaseName}/mcp?api-version=2025-11-01-Preview'
+    isSharedToAll: true
     metadata: {
-      type: 'fabric_dataagent_preview'
+      type: 'knowledgeBase_MCP'
+      knowledgeBaseName: knowledgeBaseName
     }
   }
 }
