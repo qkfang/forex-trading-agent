@@ -63,27 +63,26 @@ var tradingTool = ResponseTool.CreateMcpTool(
 var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
 
 // Configure Azure AI Search tool for FxAgResearch
-var searchConnectionName = app.Configuration["AZURE_AI_SEARCH_CONNECTION_NAME"];
+var searchConnectionId = app.Configuration["AZURE_AI_SEARCH_CONNECTION_ID"];
 var searchIndexName = app.Configuration["AZURE_AI_SEARCH_INDEX_NAME"];
 Action<DeclarativeAgentDefinition>? researchSearchConfig = null;
-if (!string.IsNullOrEmpty(searchConnectionName) && !string.IsNullOrEmpty(searchIndexName))
+if (!string.IsNullOrEmpty(searchConnectionId) && !string.IsNullOrEmpty(searchIndexName))
 {
-    var searchConnection = aiProjectClient.Connections.GetConnection(searchConnectionName);
     researchSearchConfig = agentDef => agentDef.Tools.Add(new AzureAISearchTool(new AzureAISearchToolOptions(
     [
         new AzureAISearchToolIndex
         {
-            ProjectConnectionId = searchConnection.Id,
+            ProjectConnectionId = searchConnectionId,
             IndexName = searchIndexName,
             QueryType = AzureAISearchQueryType.Simple,
             TopK = 5
         }
     ])));
-    logger.LogInformation("Azure AI Search tool configured for FxAgResearch with connection: {ConnectionName}, index: {IndexName}", searchConnectionName, searchIndexName);
+    logger.LogInformation("Azure AI Search tool configured for FxAgResearch with index: {IndexName}", searchIndexName);
 }
 else
 {
-    logger.LogWarning("AZURE_AI_SEARCH_CONNECTION_NAME or AZURE_AI_SEARCH_INDEX_NAME is not set. FxAgResearch will run without AI Search.");
+    logger.LogWarning("AZURE_AI_SEARCH_CONNECTION_ID or AZURE_AI_SEARCH_INDEX_NAME is not set. FxAgResearch will run without AI Search.");
 }
 
 // Configure Fabric data agent tool for FxAgInsight

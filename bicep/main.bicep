@@ -109,6 +109,8 @@ module azureFoundry 'modules/foundry.bicep' = {
     name: foundryName
     location: location
     tags: commonTags
+    aiSearchEndpoint: 'https://${aiSearchService.name}.search.windows.net'
+    aiSearchResourceId: aiSearchService.id
   }
 }
 
@@ -238,7 +240,7 @@ resource aiSearchService 'Microsoft.Search/searchServices@2023-11-01' = {
   location: location
   tags: commonTags
   sku: {
-    name: 'basic'
+    name: 'standard'
   }
   identity: {
     type: 'SystemAssigned'
@@ -248,12 +250,12 @@ resource aiSearchService 'Microsoft.Search/searchServices@2023-11-01' = {
     partitionCount: 1
     hostingMode: 'default'
     publicNetworkAccess: 'enabled'
+    semanticSearch: 'standard'
     authOptions: {
       aadOrApiKey: {
         aadAuthFailureMode: 'http401WithBearerChallenge'
       }
     }
-    semanticSearch: 'free'
   }
 }
 
@@ -364,6 +366,8 @@ module fxAgentApp 'modules/webapp.bicep' = {
       { name: 'API_INTG_MCP_URL', value: 'https://${baseName}-intg.azurewebsites.net' }
       { name: 'TRADING_PLATFORM_MCP_URL', value: 'https://${baseName}-trading.azurewebsites.net' }
       { name: 'FABRIC_CONNECTION_NAME', value: azureFoundry.outputs.fabricConnectionName }
+      { name: 'AZURE_AI_SEARCH_CONNECTION_ID', value: azureFoundry.outputs.aiSearchConnectionId }
+      { name: 'AZURE_AI_SEARCH_INDEX_NAME', value: 'fx_knowledge' }
       { name: 'AZURE_TENANT_ID', value: azureAIFoundryTenantId }
     ]
   }

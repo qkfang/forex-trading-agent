@@ -1,6 +1,8 @@
 param name string
 param location string
 param tags object = {}
+param aiSearchEndpoint string = ''
+param aiSearchResourceId string = ''
 
 resource aiHub 'Microsoft.CognitiveServices/accounts@2025-10-01-preview' = {
   name: name
@@ -98,6 +100,21 @@ resource fabricProjectConnection 'Microsoft.CognitiveServices/accounts/projects/
   }
 }
 
+resource aiSearchConnection 'Microsoft.CognitiveServices/accounts/connections@2025-10-01-preview' = if (aiSearchEndpoint != '') {
+  parent: aiHub
+  name: 'ai-search-connection'
+  properties: {
+    authType: 'AAD'
+    category: 'CognitiveSearch'
+    target: aiSearchEndpoint
+    metadata: {
+      type: 'azure_ai_search'
+      ResourceId: aiSearchResourceId
+      useWorkspaceManagedIdentity: 'true'
+    }
+  }
+}
+
 output accountName string = aiHub.name
 output resourceId string = aiHub.id
 output endpoint string = aiHub.properties.endpoint
@@ -107,3 +124,5 @@ output location string = location
 output fabricConnectionName string = fabricConnection.name
 output principalId string = aiHub.identity.principalId
 output projectPrincipalId string = aiProject.identity.principalId
+output aiSearchConnectionName string = aiSearchEndpoint != '' ? aiSearchConnection.name : ''
+output aiSearchConnectionId string = aiSearchEndpoint != '' ? aiSearchConnection.id : ''
